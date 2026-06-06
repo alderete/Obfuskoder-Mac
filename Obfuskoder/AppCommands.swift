@@ -27,14 +27,11 @@ struct AppCommands: Commands {
         }
         // Edit ▸ Copy Snippet (⇧⌘C) + Clear Form (⌘K)
         CommandGroup(after: .pasteboard) {
-            Button(UIStrings.copySnippet) {
-                if let html = model.snippetText {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(html, forType: .string)
-                }
-            }
-            .keyboardShortcut("c", modifiers: [.command, .shift])
-            .disabled(model.snippetText == nil)
+            Button(UIStrings.copySnippet) { model.copySnippet() }
+                .keyboardShortcut("c", modifiers: [.command, .shift])
+                .disabled(model.snippetText == nil)
+
+            Divider()
 
             Button(UIStrings.clearForm) {
                 NotificationCenter.default.post(name: .clearForm, object: nil)

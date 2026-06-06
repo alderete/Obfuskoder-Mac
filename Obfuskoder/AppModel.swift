@@ -1,5 +1,6 @@
 import SwiftUI
 import Observation
+import AppKit
 import ObfuskoderKit
 
 enum ResultState: Equatable {
@@ -14,11 +15,13 @@ final class AppModel {
     var form = FormState()
     var showDecodedSource = false
     private(set) var result: ResultState = .empty
+    private(set) var showCopiedFeedback = false
 
     var debounceSeconds: Double = AppConfig.defaultDebounceSeconds
     var fallbackMessage: String = AppConfig.defaultFallbackMessage
 
     private var encodeTask: Task<Void, Never>?
+    private var copyFeedbackTask: Task<Void, Never>?
 
     /// Call whenever the form, debounce, or fallback changes.
     func scheduleEncode() {
@@ -83,5 +86,22 @@ final class AppModel {
     func apply(_ preset: Preset) {
         form.apply(preset)
         scheduleEncode()
+    }
+
+    /// Copy the current snippet to the pasteboard and flash transient "Copied" feedback.
+    /// Shared by the Copy button and the Copy Snippet (⇧⌘C) menu command.
+    func copySnippet() {
+        guard let html = snippetText else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(html, forType: .string)
+        NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
+                             userInfo: [.announcement: UIStrings.copied])
+        showCopiedFeedback = true
+        copyFeedbackTask?.cancel()
+        copyFeedbackTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            if Task.isCancelled { return }
+            self?.showCopiedFeedback = false
+        }
     }
 }

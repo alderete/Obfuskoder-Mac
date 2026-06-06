@@ -1,10 +1,8 @@
 import SwiftUI
-import AppKit
 import ObfuskoderKit
 
 struct ResultPane: View {
     @Bindable var model: AppModel
-    @State private var copied = false
     @State private var showPreviewHint = false
 
     var body: some View {
@@ -17,12 +15,18 @@ struct ResultPane: View {
 
             snippetView
 
-            HStack {
+            HStack(spacing: 8) {
                 Spacer()
-                Button(copied ? UIStrings.copied : UIStrings.copy) { copy() }
+                if model.showCopiedFeedback {
+                    Text(UIStrings.copied)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .transition(.opacity)
+                }
+                Button(UIStrings.copy) { model.copySnippet() }
                     .disabled(model.snippetText == nil)
-                    .accessibilityLabel(UIStrings.copy)
             }
+            .animation(.default, value: model.showCopiedFeedback)
 
             Text(UIStrings.previewHeading).font(.headline)
             Group {
@@ -92,13 +96,4 @@ struct ResultPane: View {
         }
     }
 
-    private func copy() {
-        guard let html = model.snippetText else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(html, forType: .string)
-        copied = true
-        NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
-                             userInfo: [.announcement: UIStrings.copied])
-        Task { try? await Task.sleep(for: .seconds(2)); copied = false }
-    }
 }

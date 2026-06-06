@@ -233,10 +233,11 @@ Fields:
 - **Obfuskoded snippet:** a **read-only**, selectable, monospaced text view
   showing the full snippet (sentinel `<span>` + inline `<script>`). The user can
   select and copy text manually, but cannot edit it.
-- **Copy:** a Copy action (button + menu command + **⇧⌘C**, §6.9) writes the
-  snippet to the system pasteboard. Success is confirmed with a brief,
-  accessible inline confirmation (announced to VoiceOver). Copy is disabled when
-  there is no valid snippet.
+- **Copy:** a Copy action (button + **Copy Snippet** menu command + **⇧⌘C**, §6.9)
+  writes the snippet to the system pasteboard. Both paths share one code path and
+  confirm success identically: a transient **"Copied"** label appears just left of
+  the Copy button for ~5 seconds and is announced to VoiceOver. (The button label
+  itself does not change.) Copy is disabled when there is no valid snippet.
 - **Preview:** a **read-only**, non-interactive `WKWebView` that renders the
   **actual generated snippet** via `loadHTMLString` (no network, no `baseURL`),
   executing its JavaScript so the user sees exactly what a visitor would see.
@@ -304,7 +305,10 @@ the String Catalog.)
   Services, Hide, Quit (**⌘Q**).
 - **File:** Save Current Values… (**⌘S**).
 - **Edit:** standard Undo/Redo, Cut/Copy/Paste, Select All (free with native
-  text controls); Copy Snippet (**⇧⌘C**); Clear Form (**⌘K**, §6.8).
+  text controls); **Copy Snippet** (**⇧⌘C**) placed directly **below the standard
+  Copy item** per macOS convention (positioned via AppKit, since SwiftUI cannot
+  interleave within the system Cut/Copy/Paste group); a separator, then **Clear
+  Form** (**⌘K**, §6.8).
 - **View:** Basic (**⌘1**) / Advanced (**⌘2**); Show/Hide decoded source.
 - **Window:** standard window commands (Minimize, Zoom).
 - **Help:** Obfuskoder Help (at minimum a link/About-style entry).
