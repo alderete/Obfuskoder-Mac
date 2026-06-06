@@ -26,18 +26,19 @@ struct AppCommands: Commands {
             .keyboardShortcut("s", modifiers: .command)
         }
         // Edit ▸ Copy Snippet (⇧⌘C) + Clear Form (⌘K)
+        // The app's own commands, grouped together and fenced off from the standard
+        // Edit commands by separators above and below.
         CommandGroup(after: .pasteboard) {
+            Divider()
             Button(UIStrings.copySnippet) { model.copySnippet() }
                 .keyboardShortcut("c", modifiers: [.command, .shift])
                 .disabled(model.snippetText == nil)
-
-            Divider()
-
             Button(UIStrings.clearForm) {
                 NotificationCenter.default.post(name: .clearForm, object: nil)
             }
             .keyboardShortcut("k", modifiers: .command)
             .disabled(model.form.activeIsEmpty)
+            Divider()
         }
     }
 }

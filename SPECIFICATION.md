@@ -305,10 +305,9 @@ the String Catalog.)
   Services, Hide, Quit (**⌘Q**).
 - **File:** Save Current Values… (**⌘S**).
 - **Edit:** standard Undo/Redo, Cut/Copy/Paste, Select All (free with native
-  text controls); **Copy Snippet** (**⇧⌘C**) placed directly **below the standard
-  Copy item** per macOS convention (positioned via AppKit, since SwiftUI cannot
-  interleave within the system Cut/Copy/Paste group); a separator, then **Clear
-  Form** (**⌘K**, §6.8).
+  text controls); then the app's own commands, grouped together and fenced off by
+  separators above and below — **Copy Snippet** (**⇧⌘C**) and **Clear Form**
+  (**⌘K**, §6.8). (Pure SwiftUI `Commands`; no AppKit menu surgery.)
 - **View:** Basic (**⌘1**) / Advanced (**⌘2**); Show/Hide decoded source.
 - **Window:** standard window commands (Minimize, Zoom).
 - **Help:** Obfuskoder Help (at minimum a link/About-style entry).
