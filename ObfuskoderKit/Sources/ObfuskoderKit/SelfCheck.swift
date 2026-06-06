@@ -33,17 +33,29 @@ enum SelfCheck {
         var thrown: String?
         context.exceptionHandler = { _, value in thrown = value?.toString() }
 
+        // When spanID/scriptID are empty (e.g. test helper passes only decoderJS),
+        // extract the IDs from the decoder JS so the mock DOM resolves correctly.
+        let spanID: String
+        let scriptID: String
+        if artifact.spanID.isEmpty {
+            spanID = extractFirstID(from: artifact.decoderJS)
+            scriptID = spanID.isEmpty ? "" : spanID + "_s"
+        } else {
+            spanID = artifact.spanID
+            scriptID = artifact.scriptID
+        }
+
         let harness = """
         var __captured = null;
         var document = {
             _e: {},
             getElementById: function(id) { return this._e[id] || null; }
         };
-        document._e["\(artifact.spanID)"] = {
+        document._e["\(spanID)"] = {
             set outerHTML(v) { __captured = v; },
             get outerHTML() { return ""; }
         };
-        document._e["\(artifact.scriptID)"] = { parentNode: { removeChild: function() {} } };
+        document._e["\(scriptID)"] = { parentNode: { removeChild: function() {} } };
         \(artifact.decoderJS)
         __captured;
         """
@@ -54,5 +66,15 @@ enum SelfCheck {
         if recovered != artifact.input {
             throw SelfCheckError.roundTripMismatch(recovered: recovered)
         }
+    }
+
+    /// Extract the first `getElementById("...")` argument from `js` (used when
+    /// an artifact's spanID is not separately stored).
+    private static func extractFirstID(from js: String) -> String {
+        let marker = "getElementById(\""
+        guard let start = js.range(of: marker) else { return "" }
+        let rest = js[start.upperBound...]
+        guard let end = rest.range(of: "\"") else { return "" }
+        return String(rest[rest.startIndex..<end.lowerBound])
     }
 }
