@@ -1,6 +1,10 @@
 import SwiftUI
 import ObfuskoderKit
 
+extension Notification.Name {
+    static let saveCurrentValues = Notification.Name("ObfuskoderSaveCurrentValues")
+}
+
 struct AppCommands: Commands {
     let model: AppModel
 
@@ -11,6 +15,12 @@ struct AppCommands: Commands {
                 .keyboardShortcut("1", modifiers: .command)
             Button(UIStrings.advanced) { model.form.mode = .advanced; model.scheduleEncode() }
                 .keyboardShortcut("2", modifiers: .command)
+        }
+        CommandGroup(after: .newItem) {
+            Button(UIStrings.saveCurrentValues) {
+                NotificationCenter.default.post(name: .saveCurrentValues, object: nil)
+            }
+            .keyboardShortcut("s", modifiers: .command)
         }
         // Edit ▸ Copy Snippet (⇧⌘C) + Clear Form (⌘K)
         CommandGroup(after: .pasteboard) {

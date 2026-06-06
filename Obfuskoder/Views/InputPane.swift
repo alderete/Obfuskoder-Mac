@@ -11,7 +11,7 @@ struct InputPane: View {
             case .advanced: AdvancedFormView(model: model)
             }
             Spacer(minLength: 0)
-            EmptyView() // TODO(Task 27): replace with SavedValuesBar(model: model)
+            SavedValuesBar(model: model)
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
