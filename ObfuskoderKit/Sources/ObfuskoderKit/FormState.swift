@@ -46,4 +46,24 @@ public struct FormState: Equatable, Sendable {
         case .advanced: advanced = ""
         }
     }
+
+    /// Snapshot of the active mode's values (SPEC §6.7).
+    public func payload() -> PresetPayload {
+        switch mode {
+        case .basic: return .basic(basic)
+        case .advanced: return .advanced(advanced)
+        }
+    }
+
+    /// Restore the form to a saved preset's state.
+    public mutating func apply(_ preset: Preset) {
+        switch preset.payload {
+        case .basic(let fields):
+            mode = .basic
+            basic = fields
+        case .advanced(let text):
+            mode = .advanced
+            advanced = text
+        }
+    }
 }

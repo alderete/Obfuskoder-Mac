@@ -44,3 +44,10 @@ import Testing
     #expect(s.basic == BasicFields())
     #expect(s.advanced == "keep me")
 }
+
+@Test func payloadReflectsActiveMode() {
+    var s = FormState()
+    s.mode = .advanced
+    s.advanced = "<i>x</i>"
+    #expect(s.payload() == .advanced("<i>x</i>"))
+}
