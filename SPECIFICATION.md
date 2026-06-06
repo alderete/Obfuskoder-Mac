@@ -1,8 +1,8 @@
 # Obfuskoder for macOS — Specification & PRD
 
-**Status:** Draft v0.1
+**Status:** Draft v0.2
 **Owner:** Michael A. Alderete, [Aldosoft](https://aldosoft.com/)
-**Date:** 2026-06-05
+**Date:** 2026-06-06
 **Platform:** macOS (Swift + SwiftUI)
 **Companion document:** [MAC-ASSED-MAC-APPS.md](MAC-ASSED-MAC-APPS.md) — the
 "Mac-assed Mac app" standard this product is held to.
@@ -91,8 +91,9 @@ email without exposing it as plaintext in their HTML.
   capability (e.g., wrapping `WKWebView`).
 - **Deployment target:** **macOS 14 Sonoma**.
 - **Supported / tested:** macOS 14 Sonoma, macOS 15 Sequoia, macOS 26 Tahoe.
-- **Architectures:** Apple silicon and Intel (universal), unless a later
-  decision drops Intel.
+- **Architectures:** **Universal binary — Apple silicon and Intel.** This is a
+  firm requirement: the app ships a universal build that runs natively on both
+  architectures. (Not a "decide later" item.)
 - **Design-language note:** on macOS 26 Tahoe the app adopts the system's
   current materials and toolbar treatment ("Liquid Glass") automatically by
   using standard SwiftUI/AppKit controls; on 14/15 it falls back to the
@@ -115,7 +116,7 @@ email without exposing it as plaintext in their HTML.
 - Layout is a **unified-toolbar, two-pane** design:
   - **Toolbar:** a segmented control to switch **Basic / Advanced** mode.
   - **Left pane (input):** the active form's fields, plus the **Saved values**
-    control at the bottom (§6.7).
+    control and a **Clear Form** button at the bottom (§6.7, §6.8).
   - **Right pane (result):** the obfuskoded snippet (read-only), a **Copy**
     action, a live **Preview**, and a **Show decoded source** disclosure (§6.6).
 - The window opens to an **empty form** by default (no inputs are restored
@@ -133,7 +134,7 @@ ASCII sketch (wireframe, not final visuals):
 | Subject    [______________]  | | </span><script>…</script>   | |
 |                              | +-----------------------------+ |
 |                              |                      [ Copy ]   |
-| [ Saved values ▾ ]           | Preview                         |
+| [ Saved values ▾ ] [ Clear ] | Preview                         |
 |                              | +-----------------------------+ |
 |                              | | Email me                    | |
 |                              | +-----------------------------+ |
@@ -149,7 +150,7 @@ ASCII sketch (wireframe, not final visuals):
   (both modes' working values are retained in memory until the app quits or the
   user recalls/clears them).
 - Keyboard shortcuts select modes directly: **⌘1** = Basic, **⌘2** = Advanced
-  (§6.8).
+  (§6.9).
 
 ### 6.3 Basic form
 
@@ -170,13 +171,39 @@ Fields:
   Basic form shows a clear, accessible field-level message and puts the result
   pane in its empty/placeholder state (no snippet, Copy disabled). Validation
   must not interrupt typing with alerts.
+- **Field hints.** Each Basic field carries the same explanatory hint as the web
+  edition:
+
+  | Field         | Hint                                                                                       |
+  |---------------|--------------------------------------------------------------------------------------------|
+  | Email address | *"The email address to be obfuskoded."*                                                    |
+  | Link text     | *"The text users will see and click. Also obfuskoded, so you can repeat your email address."* |
+  | Link title    | *"Pop-up message seen when the mouse hovers over the link."*                                |
+  | Subject       | *"A pre-set subject line for the email. Supported by most email clients."*                  |
+
+  Hints are presented the **macOS-idiomatic** way rather than as always-visible
+  web-style caption text: a small **`info.circle` help affordance** at the
+  trailing edge of each field. Hovering it shows the hint as a **help tag
+  (tooltip)**; clicking it — or activating it from the keyboard — shows the same
+  text in a **popover**, so the hint is reachable without a mouse. The hint is
+  exposed to assistive technology as the field's **accessibility help/hint**, and
+  the affordance carries an accessibility label (e.g., "Email address help"), so
+  VoiceOver users get the same information. Hint strings live in the String
+  Catalog (§9.5).
+
+  *Design note:* an always-visible System Settings–style caption beneath each
+  field was the considered alternative; the info affordance was chosen to keep
+  the compact two-pane form uncluttered. Because the strings are externalized,
+  switching presentation later is a low-cost change.
 
 ### 6.4 Advanced form
 
 - A single multi-line text field labeled **HTML to obfuskode**, prefilled with a
   small placeholder example (e.g.,
   `<a href="mailto:user@example.com">Email me</a>`).
-- A hint notes that surrounding whitespace is trimmed.
+- The field carries a hint, shown via the same `info.circle` help affordance as
+  the Basic form (§6.3): *"Paste arbitrary HTML. Whatever you enter will
+  round-trip through Obfuskoder verbatim. (Surrounding whitespace is trimmed.)"*
 - The trimmed contents are passed **verbatim** to the encoder. No HTML
   sanitization is performed — the user is explicitly opting into "paste whatever
   you want." This is safe because (a) the snippet is generated locally for the
@@ -190,7 +217,7 @@ Fields:
   re-encodes automatically a short, configurable interval after the user stops
   changing the input ("debounce").
 - **Default debounce delay: 400 ms.** The value is a single tunable constant
-  (`AppConfig`) and is also exposed in the Settings window (§6.9) so the feel
+  (`AppConfig`) and is also exposed in the Settings window (§6.10) so the feel
   can be adjusted without rebuilding.
 - Behavior:
   - While the input is invalid or empty, the result pane shows its
@@ -206,7 +233,7 @@ Fields:
 - **Obfuskoded snippet:** a **read-only**, selectable, monospaced text view
   showing the full snippet (sentinel `<span>` + inline `<script>`). The user can
   select and copy text manually, but cannot edit it.
-- **Copy:** a Copy action (button + menu command + ⌘-shortcut, §6.8) writes the
+- **Copy:** a Copy action (button + menu command + **⇧⌘C**, §6.9) writes the
   snippet to the system pasteboard. Success is confirmed with a brief,
   accessible inline confirmation (announced to VoiceOver). Copy is disabled when
   there is no valid snippet.
@@ -246,7 +273,22 @@ Fields:
 - **Empty state:** with no presets saved, the menu shows only **Save Current
   Values…** (the list and **Manage…** appear once at least one preset exists).
 
-### 6.8 Menu bar & keyboard shortcuts
+### 6.8 Clear Form
+
+- Both the Basic and Advanced forms provide a **Clear Form** action that resets
+  the **currently active** form's fields to empty (the Advanced field returns to
+  its placeholder example) and returns the result pane to its empty state.
+- It is available two ways:
+  - a **button** in the input pane, next to the Saved values control (§6.1); and
+  - a **menu command with a keyboard shortcut** — **⌘K**, in the Edit menu
+    (§6.9).
+- Clear Form is **undoable** (it registers a standard Undo), so it shows **no
+  confirmation alert** — consistent with Mac conventions. The action is disabled
+  when the active form is already empty.
+- Clearing affects **only the active form**; the other mode's in-memory values
+  are untouched (§6.2), and **no saved presets are deleted** (§6.7).
+
+### 6.9 Menu bar & keyboard shortcuts
 
 The app ships a complete, conventional menu bar. Standard items behave
 normally; app-specific commands are wired with shortcuts. (Exact titles live in
@@ -254,17 +296,16 @@ the String Catalog.)
 
 - **Obfuskoder (app menu):** About Obfuskoder; Settings… (**⌘,**); standard
   Services, Hide, Quit (**⌘Q**).
-- **File:** Save Current Values… (**⌘S**); (Copy Snippet may also appear here or
-  under Edit).
+- **File:** Save Current Values… (**⌘S**).
 - **Edit:** standard Undo/Redo, Cut/Copy/Paste, Select All (free with native
-  text controls); Copy Snippet (e.g., **⇧⌘C**).
+  text controls); Copy Snippet (**⇧⌘C**); Clear Form (**⌘K**, §6.8).
 - **View:** Basic (**⌘1**) / Advanced (**⌘2**); Show/Hide decoded source.
 - **Window:** standard window commands (Minimize, Zoom).
 - **Help:** Obfuskoder Help (at minimum a link/About-style entry).
 - The entire UI is operable from the keyboard alone, with visible focus, correct
   tab order, and no mouse-only paths.
 
-### 6.9 Settings window
+### 6.10 Settings window
 
 - A standard **Settings** scene (opened with **⌘,**) hosting at least:
   - **Encoding delay** — the debounce interval (§6.5), defaulting to 400 ms, so
@@ -450,9 +491,9 @@ this product:
 - Single `Window` scene; no spurious New Window or tabbing; window frame
   restored across launches; **quit on last window close** (a focused
   single-window utility), with reopen-from-Dock recreating the window.
-- A complete, conventional **menu bar** with working shortcuts (§6.8); standard
+- A complete, conventional **menu bar** with working shortcuts (§6.9); standard
   Edit menu behaviors from native text controls.
-- **Settings** via ⌘, (§6.9).
+- **Settings** via ⌘, (§6.10).
 - **Native text-field hygiene:** smart quotes, smart dashes, and automatic text
   replacement are **disabled** in input fields (so emails/HTML are not mangled);
   spell-checking is off on code/HTML fields.
@@ -500,13 +541,21 @@ The product is releasable when all of the following are true:
       name, recall it (restoring mode + fields), rename/delete/reorder presets,
       and is prompted before replacing an existing name. Presets persist across
       launches.
+- [ ] **Field hints:** each Basic field (and the Advanced field) exposes its hint
+      via the `info.circle` affordance — help tag on hover, popover on
+      click/keyboard — and to VoiceOver as accessibility help.
+- [ ] **Clear Form:** a button and a keyboard-shortcut menu command clear the
+      active form and reset the result, undoably, without confirmation, leaving
+      the other mode's values and all saved presets intact; the action is
+      disabled when the active form is already empty.
 - [ ] The whole UI is operable from the keyboard with visible focus; VoiceOver
       describes every control.
 - [ ] Renders correctly in **both Light and Dark** appearance.
 - [ ] Smart quotes/dashes/auto-replacement are off in input fields.
 - [ ] Runs with **App Sandbox enabled** and makes **no network requests**
       (verifiable with networking disabled and/or a network monitor).
-- [ ] Builds and runs on macOS 14, 15, and 26.
+- [ ] Ships as a **universal binary** (Apple silicon + Intel) and builds/runs on
+      macOS 14, 15, and 26.
 
 ## 13. Out of scope for v1 (parking lot)
 
@@ -540,17 +589,26 @@ The product is releasable when all of the following are true:
 - **License:** **MIT**. The README must acknowledge the original Hivelogic
   Enkoder by Dan Benjamin (and may note the 2009 Enkoder.app Mac edition).
 - **Default fallback message:** *"Enable JavaScript to view email"*.
+- **Architectures:** **universal binary (Apple silicon + Intel)** — firm, not a
+  later decision (§5).
+- **Field hints:** the four Basic hints (and the Advanced hint) are carried over
+  from the web edition and presented via a macOS `info.circle` help affordance
+  (hover help tag + click/keyboard popover), fully accessible (§6.3).
+- **Clear Form:** present in both forms as a button plus an Edit-menu command
+  (**⌘K**), undoable, per active form (§6.8).
+- **License copyright holder:** **Michael A. Alderete** (matching the web
+  edition).
 
 ### Still open
 - **"Saved values" final label.** Working title; to be decided (candidates:
   "Presets", "Saved forms", "Saved entries"). Lives in the String Catalog.
-- **Intel support.** Universal build assumed; may narrow to Apple silicon only.
+- **Keyboard-shortcut conflict audit.** Verify the full app shortcut set
+  (⌘K, ⇧⌘C, ⌘1, ⌘2, ⌘S, ⌘,) against standard macOS keyboard shortcuts to ensure
+  none collide with system or conventional app bindings, before 1.0.
 - **Min-OS opportunities.** Watch for cases where raising the target above
   macOS 14 (to 15 or 26) materially simplifies `WKWebView`, `Observation`, or
   SwiftUI usage; revisit before locking 1.0.
 - **App icon.** To be designed.
-- **Copyright holder on LICENSE.** *Michael A. Alderete* vs. *Aldosoft* (carry
-  the web edition's resolution).
 
 ## 15. References & acknowledgements
 
