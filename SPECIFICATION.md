@@ -1,6 +1,6 @@
 # Obfuskoder for macOS — Specification & PRD
 
-**Status:** Draft v0.2
+**Status:** Draft v0.3
 **Owner:** Michael A. Alderete, [Aldosoft](https://aldosoft.com/)
 **Date:** 2026-06-06
 **Platform:** macOS (Swift + SwiftUI)
@@ -233,15 +233,22 @@ Fields:
 - **Obfuskoded snippet:** a **read-only**, selectable, monospaced text view
   showing the full snippet (sentinel `<span>` + inline `<script>`). The user can
   select and copy text manually, but cannot edit it.
-- **Copy:** a Copy action (button + menu command + **⇧⌘C**, §6.9) writes the
-  snippet to the system pasteboard. Success is confirmed with a brief,
-  accessible inline confirmation (announced to VoiceOver). Copy is disabled when
-  there is no valid snippet.
+- **Copy:** a Copy action (button + **Copy Snippet** menu command + **⇧⌘C**, §6.9)
+  writes the snippet to the system pasteboard. Both paths share one code path and
+  confirm success identically: a transient **"Copied"** label appears just left of
+  the Copy button for ~5 seconds and is announced to VoiceOver. (The button label
+  itself does not change.) Copy is disabled when there is no valid snippet.
 - **Preview:** a **read-only**, non-interactive `WKWebView` that renders the
   **actual generated snippet** via `loadHTMLString` (no network, no `baseURL`),
   executing its JavaScript so the user sees exactly what a visitor would see.
   Navigation actions (e.g., clicking the `mailto:` link) are cancelled — the
-  preview is a visual proof, not a launch surface.
+  preview is a visual proof, not a launch surface. The preview text is not
+  selectable, and clicking a link is intercepted (never navigates) and briefly
+  shows a *"Preview is non-interactive"* hint beneath the preview.
+  *Design intent:* the preview deliberately keeps an interactive **appearance**
+  (e.g., hovering a link shows its `title` tooltip) so it reads as a real,
+  complete rendering of what visitors get; the intercepted-click hint resolves
+  the one expectation that can't be honored. Do not "fix" the clickable look.
 - **Show decoded source:** a disclosure control that reveals the decoded HTML
   (which, by ENC-1, equals the user's input) so the user can verify the
   round-trip.
@@ -298,7 +305,9 @@ the String Catalog.)
   Services, Hide, Quit (**⌘Q**).
 - **File:** Save Current Values… (**⌘S**).
 - **Edit:** standard Undo/Redo, Cut/Copy/Paste, Select All (free with native
-  text controls); Copy Snippet (**⇧⌘C**); Clear Form (**⌘K**, §6.8).
+  text controls); then the app's own commands, grouped together and fenced off by
+  separators above and below — **Copy Snippet** (**⇧⌘C**) and **Clear Form**
+  (**⌘K**, §6.8). (Pure SwiftUI `Commands`; no AppKit menu surgery.)
 - **View:** Basic (**⌘1**) / Advanced (**⌘2**); Show/Hide decoded source.
 - **Window:** standard window commands (Minimize, Zoom).
 - **Help:** Obfuskoder Help (at minimum a link/About-style entry).
@@ -419,11 +428,16 @@ views above.
 
 ### 9.1 Sandboxing & distribution
 
-- **App Sandbox is enabled.** Entitlements are kept minimal:
-  - **No network** client or server entitlement — the app makes no network
-    calls of any kind (§9.2). The `WKWebView` loads only in-memory HTML.
-  - **No user-selected file access** — presets and settings live in the app's
-    own container.
+- **App Sandbox is enabled**, with minimal entitlements:
+  - **`com.apple.security.network.client`** — declared because a sandboxed
+    `WKWebView` requires it to launch its WebContent process, *even for local,
+    in-memory HTML*. Without it the WebContent process is denied and the preview
+    stays blank. The app makes **no actual outbound requests**: the preview loads
+    a self-contained snippet via `loadHTMLString(baseURL: nil)` with navigation
+    cancelled, and there is no other networking code (§9.2). (Set via the
+    `ENABLE_OUTGOING_NETWORK_CONNECTIONS` build setting.)
+  - **No network *server* entitlement; no user-selected file access** — presets
+    and settings live in the app's own container.
 - The app is built to be **notarization-ready** and Developer ID–signable.
 - **Distribution (v1):** direct download (notarized Developer ID), **not** the
   Mac App Store. Nothing in the design precludes a later MAS submission — the
@@ -432,8 +446,12 @@ views above.
 
 ### 9.2 Privacy & security
 
-- **No outbound network requests, ever.** No telemetry, analytics, crash
-  reporting, third-party SDKs, fonts, or CDNs.
+- **No outbound network requests.** The app declares the
+  `com.apple.security.network.client` entitlement *solely* because `WKWebView`
+  cannot run in the App Sandbox without it (§9.1); it makes **no actual network
+  connections** — no telemetry, analytics, crash reporting, third-party SDKs,
+  fonts, or CDNs, and the preview snippet is self-contained and loaded in-memory.
+  The no-network behavior is verifiable with a network monitor.
 - User input lives in memory only, **except** saved presets and settings, which
   are written to the local sandbox container **only when the user explicitly
   saves them** and are **never transmitted**. (This is the one deliberate
@@ -585,6 +603,10 @@ The product is releasable when all of the following are true:
 - **Deployment target:** macOS 14; supported through macOS 26 Tahoe.
 - **Distribution:** direct (notarized Developer ID) for v1, sandbox-clean to
   keep MAS open.
+- **WKWebView entitlement:** the sandboxed preview requires
+  `com.apple.security.network.client` to launch its WebContent process; it is
+  declared, but the app makes no actual network requests (§9.1/§9.2). Resolved
+  2026-06-06 after the preview rendered blank without it.
 - **Appearance:** Light + Dark; dusty-sage (`#5E7C50`) accent.
 - **License:** **MIT**. The README must acknowledge the original Hivelogic
   Enkoder by Dan Benjamin (and may note the 2009 Enkoder.app Mac edition).
