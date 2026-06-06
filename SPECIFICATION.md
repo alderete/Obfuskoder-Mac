@@ -244,6 +244,10 @@ Fields:
   preview is a visual proof, not a launch surface. The preview text is not
   selectable, and clicking a link is intercepted (never navigates) and briefly
   shows a *"Preview is non-interactive"* hint beneath the preview.
+  *Design intent:* the preview deliberately keeps an interactive **appearance**
+  (e.g., hovering a link shows its `title` tooltip) so it reads as a real,
+  complete rendering of what visitors get; the intercepted-click hint resolves
+  the one expectation that can't be honored. Do not "fix" the clickable look.
 - **Show decoded source:** a disclosure control that reveals the decoded HTML
   (which, by ENC-1, equals the user's input) so the user can verify the
   round-trip.
