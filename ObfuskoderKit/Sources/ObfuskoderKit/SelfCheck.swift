@@ -18,6 +18,12 @@ enum SelfCheck {
         if artifact.html.contains("@") { throw SelfCheckError.atSignPresent }            // ENC-3
     }
 
+    /// ENC-1 + ENC-2 + ENC-3.
+    static func verify(_ artifact: EncodedArtifact, email: String?) throws {
+        try verifyStringProperties(artifact, email: email)
+        try verifyRoundTrip(artifact)
+    }
+
     /// ENC-1: execute the decoder against a faked `document` in JavaScriptCore and
     /// confirm the recovered string equals the input verbatim (SPEC §7.3).
     static func verifyRoundTrip(_ artifact: EncodedArtifact) throws {
