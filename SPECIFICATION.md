@@ -1,6 +1,6 @@
 # Obfuskoder for macOS — Specification & PRD
 
-**Status:** Draft v0.2
+**Status:** Draft v0.3
 **Owner:** Michael A. Alderete, [Aldosoft](https://aldosoft.com/)
 **Date:** 2026-06-06
 **Platform:** macOS (Swift + SwiftUI)
@@ -419,11 +419,16 @@ views above.
 
 ### 9.1 Sandboxing & distribution
 
-- **App Sandbox is enabled.** Entitlements are kept minimal:
-  - **No network** client or server entitlement — the app makes no network
-    calls of any kind (§9.2). The `WKWebView` loads only in-memory HTML.
-  - **No user-selected file access** — presets and settings live in the app's
-    own container.
+- **App Sandbox is enabled**, with minimal entitlements:
+  - **`com.apple.security.network.client`** — declared because a sandboxed
+    `WKWebView` requires it to launch its WebContent process, *even for local,
+    in-memory HTML*. Without it the WebContent process is denied and the preview
+    stays blank. The app makes **no actual outbound requests**: the preview loads
+    a self-contained snippet via `loadHTMLString(baseURL: nil)` with navigation
+    cancelled, and there is no other networking code (§9.2). (Set via the
+    `ENABLE_OUTGOING_NETWORK_CONNECTIONS` build setting.)
+  - **No network *server* entitlement; no user-selected file access** — presets
+    and settings live in the app's own container.
 - The app is built to be **notarization-ready** and Developer ID–signable.
 - **Distribution (v1):** direct download (notarized Developer ID), **not** the
   Mac App Store. Nothing in the design precludes a later MAS submission — the
@@ -432,8 +437,12 @@ views above.
 
 ### 9.2 Privacy & security
 
-- **No outbound network requests, ever.** No telemetry, analytics, crash
-  reporting, third-party SDKs, fonts, or CDNs.
+- **No outbound network requests.** The app declares the
+  `com.apple.security.network.client` entitlement *solely* because `WKWebView`
+  cannot run in the App Sandbox without it (§9.1); it makes **no actual network
+  connections** — no telemetry, analytics, crash reporting, third-party SDKs,
+  fonts, or CDNs, and the preview snippet is self-contained and loaded in-memory.
+  The no-network behavior is verifiable with a network monitor.
 - User input lives in memory only, **except** saved presets and settings, which
   are written to the local sandbox container **only when the user explicitly
   saves them** and are **never transmitted**. (This is the one deliberate
@@ -585,6 +594,10 @@ The product is releasable when all of the following are true:
 - **Deployment target:** macOS 14; supported through macOS 26 Tahoe.
 - **Distribution:** direct (notarized Developer ID) for v1, sandbox-clean to
   keep MAS open.
+- **WKWebView entitlement:** the sandboxed preview requires
+  `com.apple.security.network.client` to launch its WebContent process; it is
+  declared, but the app makes no actual network requests (§9.1/§9.2). Resolved
+  2026-06-06 after the preview rendered blank without it.
 - **Appearance:** Light + Dark; dusty-sage (`#5E7C50`) accent.
 - **License:** **MIT**. The README must acknowledge the original Hivelogic
   Enkoder by Dan Benjamin (and may note the 2009 Enkoder.app Mac edition).
