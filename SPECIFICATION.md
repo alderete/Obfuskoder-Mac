@@ -241,7 +241,9 @@ Fields:
   **actual generated snippet** via `loadHTMLString` (no network, no `baseURL`),
   executing its JavaScript so the user sees exactly what a visitor would see.
   Navigation actions (e.g., clicking the `mailto:` link) are cancelled — the
-  preview is a visual proof, not a launch surface.
+  preview is a visual proof, not a launch surface. The preview text is not
+  selectable, and clicking a link is intercepted (never navigates) and briefly
+  shows a *"Preview is non-interactive"* hint beneath the preview.
 - **Show decoded source:** a disclosure control that reveals the decoded HTML
   (which, by ENC-1, equals the user's input) so the user can verify the
   round-trip.
