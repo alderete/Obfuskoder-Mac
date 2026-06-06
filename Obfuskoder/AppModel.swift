@@ -12,6 +12,7 @@ enum ResultState: Equatable {
 @Observable
 final class AppModel {
     var form = FormState()
+    var showDecodedSource = false
     private(set) var result: ResultState = .empty
 
     var debounceSeconds: Double = AppConfig.defaultDebounceSeconds
@@ -58,9 +59,25 @@ final class AppModel {
         return nil
     }
 
-    func clearActiveForm() {
+    func clearActiveForm(undoManager: UndoManager?) {
+        guard !form.activeIsEmpty else { return }
+        let previous = form
         form.clearActive()
         scheduleEncode()
+        undoManager?.registerUndo(withTarget: self) { target in
+            target.restoreForm(previous, undoManager: undoManager)
+        }
+        undoManager?.setActionName(UIStrings.clearForm)
+    }
+
+    func restoreForm(_ snapshot: FormState, undoManager: UndoManager?) {
+        let current = form
+        form = snapshot
+        scheduleEncode()
+        undoManager?.registerUndo(withTarget: self) { target in
+            target.restoreForm(current, undoManager: undoManager)
+        }
+        undoManager?.setActionName(UIStrings.clearForm)
     }
 
     func apply(_ preset: Preset) {

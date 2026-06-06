@@ -5,6 +5,7 @@ struct ContentView: View {
     @Environment(AppModel.self) private var model
     @Environment(PresetStore.self) private var store
 
+    @Environment(\.undoManager) private var undoManager
     @AppStorage(SettingsKeys.debounceSeconds) private var debounce = AppConfig.defaultDebounceSeconds
     @AppStorage(SettingsKeys.fallbackMessage) private var fallback = AppConfig.defaultFallbackMessage
 
@@ -26,6 +27,7 @@ struct ContentView: View {
                 }
                 .pickerStyle(.segmented)
                 .fixedSize()
+                .accessibilityLabel(Text(UIStrings.modeLabel))
             }
         }
         .onAppear { syncSettings() }
@@ -34,6 +36,9 @@ struct ContentView: View {
         .onChange(of: fallback) { syncSettings() }
         .onReceive(NotificationCenter.default.publisher(for: .saveCurrentValues)) { _ in
             showSaveSheet = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .clearForm)) { _ in
+            model.clearActiveForm(undoManager: undoManager)
         }
         .sheet(isPresented: $showSaveSheet) {
             SaveValuesSheet(store: store, payload: model.form.payload())

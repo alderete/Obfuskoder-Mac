@@ -3,18 +3,21 @@ import ObfuskoderKit
 
 extension Notification.Name {
     static let saveCurrentValues = Notification.Name("ObfuskoderSaveCurrentValues")
+    static let clearForm = Notification.Name("ObfuskoderClearForm")
 }
 
 struct AppCommands: Commands {
     let model: AppModel
 
     var body: some Commands {
-        // View ▸ Basic / Advanced
+        // View ▸ Basic / Advanced / Show-Hide Decoded Source
         CommandGroup(after: .toolbar) {
             Button(UIStrings.basic) { model.form.mode = .basic; model.scheduleEncode() }
                 .keyboardShortcut("1", modifiers: .command)
             Button(UIStrings.advanced) { model.form.mode = .advanced; model.scheduleEncode() }
                 .keyboardShortcut("2", modifiers: .command)
+            Button(UIStrings.toggleDecodedSource) { model.showDecodedSource.toggle() }
+                .disabled(model.snippetText == nil)
         }
         CommandGroup(after: .newItem) {
             Button(UIStrings.saveCurrentValues) {
@@ -33,9 +36,11 @@ struct AppCommands: Commands {
             .keyboardShortcut("c", modifiers: [.command, .shift])
             .disabled(model.snippetText == nil)
 
-            Button(UIStrings.clearForm) { model.clearActiveForm() }
-                .keyboardShortcut("k", modifiers: .command)
-                .disabled(model.form.activeIsEmpty)
+            Button(UIStrings.clearForm) {
+                NotificationCenter.default.post(name: .clearForm, object: nil)
+            }
+            .keyboardShortcut("k", modifiers: .command)
+            .disabled(model.form.activeIsEmpty)
         }
     }
 }

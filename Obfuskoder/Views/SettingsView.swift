@@ -18,6 +18,7 @@ struct SettingsView: View {
             Section(UIStrings.settingsFallbackMessage) {
                 TextField("", text: $fallback)
                     .onChange(of: fallback) { fallback = fallback.replacingOccurrences(of: "@", with: "") }
+                    .accessibilityLabel(Text(UIStrings.settingsFallbackMessage))
             }
         }
         .formStyle(.grouped)

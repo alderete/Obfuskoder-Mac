@@ -37,6 +37,9 @@ enum UIStrings {
     static let saveCurrentValues = String(localized: "Save Current Values…")
     static let manageSavedValues = String(localized: "Manage Saved Values…")
     static let clearForm = String(localized: "Clear Form")
+    static let modeLabel = String(localized: "Input mode")
+    static let toggleDecodedSource = String(localized: "Show/Hide Decoded Source")
+    static let presetNameField = String(localized: "Preset name")
 
     // Sheets
     static let presetNamePrompt = String(localized: "Name for these values:")

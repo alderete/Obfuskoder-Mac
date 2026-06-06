@@ -15,6 +15,7 @@ struct SaveValuesSheet: View {
             TextField("", text: $name)
                 .frame(width: 280)
                 .onChange(of: name) { duplicate = false }
+                .accessibilityLabel(Text(UIStrings.presetNamePrompt))
             if duplicate {
                 Text(UIStrings.presetNameDuplicate).foregroundStyle(.red).font(.caption)
             }

@@ -31,6 +31,7 @@ struct BasicFormView: View {
             HStack(spacing: 6) {
                 MacTextField(text: text, onChange: { model.scheduleEncode() })
                     .frame(minWidth: 220)
+                    .accessibilityLabel(Text(label))
                 FieldHint(fieldLabel: label, hint: hint)
             }
         }

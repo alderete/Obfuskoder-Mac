@@ -4,7 +4,6 @@ import ObfuskoderKit
 
 struct ResultPane: View {
     @Bindable var model: AppModel
-    @State private var showDecoded = false
     @State private var copied = false
 
     var body: some View {
@@ -36,7 +35,7 @@ struct ResultPane: View {
             .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
 
             if model.decodedSource != nil {
-                DisclosureGroup(UIStrings.showDecodedSource, isExpanded: $showDecoded) {
+                DisclosureGroup(UIStrings.showDecodedSource, isExpanded: $model.showDecodedSource) {
                     Text(model.decodedSource ?? "")
                         .font(.system(.caption, design: .monospaced))
                         .textSelection(.enabled)

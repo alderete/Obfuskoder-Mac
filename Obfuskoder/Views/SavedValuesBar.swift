@@ -24,8 +24,10 @@ struct SavedValuesBar: View {
             .menuStyle(.borderlessButton)
             .fixedSize()
 
-            Button(UIStrings.clearForm) { model.clearActiveForm() }
-                .disabled(model.form.activeIsEmpty)
+            Button(UIStrings.clearForm) {
+                NotificationCenter.default.post(name: .clearForm, object: nil)
+            }
+            .disabled(model.form.activeIsEmpty)
         }
         .sheet(isPresented: $showSaveSheet) {
             SaveValuesSheet(store: store, payload: model.form.payload())

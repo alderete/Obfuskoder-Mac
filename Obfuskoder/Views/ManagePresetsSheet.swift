@@ -38,6 +38,7 @@ private struct PresetRow: View {
                 .onSubmit {
                     try? store.rename(id: preset.id, to: editedName.trimmingCharacters(in: .whitespaces))
                 }
+                .accessibilityLabel(Text(UIStrings.presetNameField))
             Spacer()
             Button(role: .destructive) { try? store.delete(id: preset.id) } label: {
                 Image(systemName: "trash")

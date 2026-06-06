@@ -13,6 +13,7 @@ struct AdvancedFormView: View {
             MacTextEditor(text: $model.form.advanced, onChange: { model.scheduleEncode() })
                 .frame(minHeight: 180)
                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+                .accessibilityLabel(Text(UIStrings.advancedLabel))
         }
     }
 }
