@@ -58,6 +58,16 @@ private func tempStore() -> (PresetStore, URL) {
     #expect(reloaded.presets.first?.name == "Keep")
 }
 
+@MainActor @Test func saveFailureLeavesStateUnchanged() {
+    // Parent path is under /dev/null, so createDirectory/write inside persist() fails.
+    let store = PresetStore(fileURL: URL(fileURLWithPath: "/dev/null/obfuskoder/presets.json"))
+    #expect(throws: (any Error).self) {
+        _ = try store.save(name: "X", payload: .advanced("a"))
+    }
+    // Transactional: a failed persist must not leave the preset in memory.
+    #expect(store.presets.isEmpty)
+}
+
 @MainActor @Test func reordersPresets() throws {
     let (store, _) = tempStore()
     _ = try store.save(name: "1", payload: .advanced("a"))

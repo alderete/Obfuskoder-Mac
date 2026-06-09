@@ -20,30 +20,37 @@ public final class PresetStore {
     public func save(name: String, payload: PresetPayload) throws -> Preset {
         try ensureNameAvailable(name, excluding: nil)
         let preset = Preset(name: name, payload: payload)
-        presets.append(preset)
-        try persist()
+        let updated = presets + [preset]
+        try persist(updated)
+        presets = updated
         return preset
     }
 
     public func replace(id: UUID, name: String, payload: PresetPayload) throws {
         guard let idx = presets.firstIndex(where: { $0.id == id }) else { throw PresetError.notFound }
         try ensureNameAvailable(name, excluding: id)
-        presets[idx].name = name
-        presets[idx].payload = payload
-        try persist()
+        var updated = presets
+        updated[idx].name = name
+        updated[idx].payload = payload
+        try persist(updated)
+        presets = updated
     }
 
     public func rename(id: UUID, to newName: String) throws {
         guard let idx = presets.firstIndex(where: { $0.id == id }) else { throw PresetError.notFound }
         try ensureNameAvailable(newName, excluding: id)
-        presets[idx].name = newName
-        try persist()
+        var updated = presets
+        updated[idx].name = newName
+        try persist(updated)
+        presets = updated
     }
 
     public func delete(id: UUID) throws {
         guard let idx = presets.firstIndex(where: { $0.id == id }) else { throw PresetError.notFound }
-        presets.remove(at: idx)
-        try persist()
+        var updated = presets
+        updated.remove(at: idx)
+        try persist(updated)
+        presets = updated
     }
 
     public func move(fromOffsets source: IndexSet, toOffset destination: Int) {
@@ -57,8 +64,9 @@ public final class PresetStore {
         // Adjust destination for removed elements below it
         let adjustedDest = destination - source.filter { $0 < destination }.count
         result.insert(contentsOf: moved, at: adjustedDest)
-        presets = result
-        try? persist()
+        // Persist before committing the new order; on failure leave state (and the
+        // visible list) unchanged rather than showing a reorder that didn't save.
+        do { try persist(result); presets = result } catch { }
     }
 
     public func nameExists(_ name: String) -> Bool {
@@ -71,10 +79,10 @@ public final class PresetStore {
         }
     }
 
-    private func persist() throws {
+    private func persist(_ snapshot: [Preset]) throws {
         let dir = fileURL.deletingLastPathComponent()
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let data = try JSONEncoder().encode(presets)
+        let data = try JSONEncoder().encode(snapshot)
         try data.write(to: fileURL, options: .atomic)
     }
 

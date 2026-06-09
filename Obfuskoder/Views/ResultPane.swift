@@ -4,6 +4,7 @@ import ObfuskoderKit
 struct ResultPane: View {
     @Bindable var model: AppModel
     @State private var showPreviewHint = false
+    @State private var previewHintTask: Task<Void, Never>?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -90,9 +91,10 @@ struct ResultPane: View {
 
     private func flashPreviewHint() {
         withAnimation { showPreviewHint = true }
-        Task {
+        previewHintTask?.cancel()
+        previewHintTask = Task {
             try? await Task.sleep(for: .seconds(3))
-            withAnimation { showPreviewHint = false }
+            if !Task.isCancelled { withAnimation { showPreviewHint = false } }
         }
     }
 
