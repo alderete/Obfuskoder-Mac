@@ -8,16 +8,20 @@ struct SaveValuesSheet: View {
 
     @State private var name = ""
     @State private var duplicate = false
+    @State private var saveError: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(UIStrings.presetNamePrompt).font(.headline)
             TextField("", text: $name)
                 .frame(width: 280)
-                .onChange(of: name) { duplicate = false }
+                .onChange(of: name) { duplicate = false; saveError = nil }
                 .accessibilityLabel(Text(UIStrings.presetNamePrompt))
             if duplicate {
                 Text(UIStrings.presetNameDuplicate).foregroundStyle(.red).font(.caption)
+            }
+            if let saveError {
+                Text(saveError).foregroundStyle(.red).font(.caption)
             }
             HStack {
                 Spacer()
@@ -38,14 +42,13 @@ struct SaveValuesSheet: View {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         do { _ = try store.save(name: trimmed, payload: payload); dismiss() }
         catch PresetError.duplicateName(_) { duplicate = true }
-        catch { dismiss() }
+        catch { saveError = UIStrings.presetSaveFailed }
     }
 
     private func replaceExisting() {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
-        if let existing = store.presets.first(where: { $0.name == trimmed }) {
-            try? store.replace(id: existing.id, name: trimmed, payload: payload)
-        }
-        dismiss()
+        guard let existing = store.presets.first(where: { $0.name == trimmed }) else { dismiss(); return }
+        do { try store.replace(id: existing.id, name: trimmed, payload: payload); dismiss() }
+        catch { saveError = UIStrings.presetSaveFailed }
     }
 }

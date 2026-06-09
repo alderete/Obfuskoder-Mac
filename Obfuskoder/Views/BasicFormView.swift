@@ -29,7 +29,7 @@ struct BasicFormView: View {
             .gridColumnAlignment(.trailing)
 
             HStack(spacing: 6) {
-                MacTextField(text: text, onChange: { model.scheduleEncode() })
+                MacTextField(text: text)
                     .frame(minWidth: 220)
                     .accessibilityLabel(Text(label))
                 FieldHint(fieldLabel: label, hint: hint)

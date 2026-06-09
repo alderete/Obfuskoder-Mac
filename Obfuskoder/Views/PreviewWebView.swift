@@ -1,9 +1,12 @@
 import SwiftUI
 import WebKit
 
-/// Read-only WKWebView that runs the actual snippet (SPEC §6.6). No network.
-/// Text isn't selectable; clicking a link is intercepted (no navigation) and reported
-/// via `onInteractionAttempt`, so the UI can explain the preview is non-interactive.
+/// Read-only WKWebView that runs the actual snippet (SPEC §6.6). No network:
+/// a `default-src 'none'` CSP in the wrapper blocks every remote subresource the
+/// navigation delegate can't (images, CSS, fetch, frames), and link clicks are
+/// intercepted. The page paints its own appearance-adaptive `Canvas` background via
+/// public API — no private `drawsBackground` KVC. Text isn't selectable; interaction
+/// attempts are reported via `onInteractionAttempt` so the UI can say so.
 struct PreviewWebView: NSViewRepresentable {
     let html: String
     /// Reload only when the rendered (decoded) content changes — not on every random
@@ -15,7 +18,6 @@ struct PreviewWebView: NSViewRepresentable {
         let config = WKWebViewConfiguration()
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
-        webView.setValue(false, forKey: "drawsBackground")
         return webView
     }
 
@@ -25,7 +27,12 @@ struct PreviewWebView: NSViewRepresentable {
         context.coordinator.lastKey = reloadKey
         let document = """
         <!doctype html><html><head><meta charset="utf-8">
-        <style>body{font:13px -apple-system,system-ui,sans-serif;margin:8px;color:canvastext;\
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; \
+        script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; \
+        connect-src 'none'; media-src data: blob:; font-src data:; frame-src 'none'; \
+        base-uri 'none'; form-action 'none'">
+        <style>html,body{background:Canvas;color:CanvasText}\
+        body{font:13px -apple-system,system-ui,sans-serif;margin:8px;\
         -webkit-user-select:none;user-select:none}</style>
         </head><body>\(html)</body></html>
         """
@@ -41,7 +48,7 @@ struct PreviewWebView: NSViewRepresentable {
 
         func webView(_ webView: WKWebView,
                      decidePolicyFor navigationAction: WKNavigationAction,
-                     decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+                     decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
             if navigationAction.navigationType == .other {
                 decisionHandler(.allow)        // the initial in-memory load
             } else {

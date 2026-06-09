@@ -10,7 +10,7 @@ struct AdvancedFormView: View {
                 Text(UIStrings.advancedLabel).font(.headline)
                 FieldHint(fieldLabel: UIStrings.advancedLabel, hint: UIStrings.advancedHint)
             }
-            MacTextEditor(text: $model.form.advanced, onChange: { model.scheduleEncode() })
+            MacTextEditor(text: $model.form.advanced)
                 .frame(minHeight: 180)
                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
                 .accessibilityLabel(Text(UIStrings.advancedLabel))

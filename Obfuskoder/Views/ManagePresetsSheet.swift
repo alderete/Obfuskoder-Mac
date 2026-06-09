@@ -36,7 +36,8 @@ private struct PresetRow: View {
         HStack {
             TextField("", text: $editedName)
                 .onSubmit {
-                    try? store.rename(id: preset.id, to: editedName.trimmingCharacters(in: .whitespaces))
+                    do { try store.rename(id: preset.id, to: editedName.trimmingCharacters(in: .whitespaces)) }
+                    catch { editedName = preset.name }   // revert so the field reflects what's stored
                 }
                 .accessibilityLabel(Text(UIStrings.presetNameField))
             Spacer()

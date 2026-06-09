@@ -46,6 +46,7 @@ enum UIStrings {
     // Sheets
     static let presetNamePrompt = String(localized: "Name for these values:")
     static let presetNameDuplicate = String(localized: "A saved set with that name already exists.")
+    static let presetSaveFailed = String(localized: "Could not save these values. Check available disk space and try again.")
     static let replace = String(localized: "Replace")
     static let save = String(localized: "Save")
     static let cancel = String(localized: "Cancel")

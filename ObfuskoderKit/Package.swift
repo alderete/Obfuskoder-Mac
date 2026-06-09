@@ -10,13 +10,13 @@ let package = Package(
     targets: [
         .target(
             name: "ObfuskoderKit",
-            swiftSettings: [.swiftLanguageMode(.v5)],
+            swiftSettings: [.swiftLanguageMode(.v6)],
             linkerSettings: [.linkedFramework("JavaScriptCore")]
         ),
         .testTarget(
             name: "ObfuskoderKitTests",
             dependencies: ["ObfuskoderKit"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v6)]
         )
     ]
 )
