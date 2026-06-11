@@ -436,8 +436,12 @@ views above.
     a self-contained snippet via `loadHTMLString(baseURL: nil)` with navigation
     cancelled, and there is no other networking code (§9.2). (Set via the
     `ENABLE_OUTGOING_NETWORK_CONNECTIONS` build setting.)
-  - **No network *server* entitlement; no user-selected file access** — presets
-    and settings live in the app's own container.
+  - **`com.apple.security.files.user-selected.read-write`** — declared so
+    the *Install Command Line Tool* flow (SPECIFICATION-CLI.md §6) can
+    create its symlink in the folder the user picks in the open panel.
+    Presets and settings still live in the app's own container; the app
+    opens no other user files.
+  - **No network *server* entitlement.**
 - The app is built to be **notarization-ready** and Developer ID–signable.
 - **Distribution (v1):** direct download (notarized Developer ID), **not** the
   Mac App Store. Nothing in the design precludes a later MAS submission — the

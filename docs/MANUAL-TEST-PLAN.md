@@ -152,6 +152,35 @@ Turn on VoiceOver (⌘F5).
 
 - [ ] 17.1 With a network monitor (e.g. Little Snitch, or Activity Monitor ▸ Network), exercise Basic + Advanced + preview → the app makes **no outbound connections** (the `network.client` entitlement is required for WKWebView but never used to connect).
 
+## 18. Command-line tool (obfuskode)
+
+> Requires a built app. CLI behavior details: SPECIFICATION-CLI.md §5–§6.
+
+- [ ] **Install (writable folder):** Obfuskoder ▸ Install Command Line
+      Tool…, choose a folder you can write to (e.g. `/opt/homebrew/bin` or
+      `~/bin`). Success alert names the link path; for an off-PATH folder it
+      adds the PATH hint. The link works: `obfuskode --version` prints the
+      app's version (matches Finder ▸ Get Info).
+- [ ] **Install (root-owned folder):** choose `/usr/local/bin` on a machine
+      where it is root-owned. The failure alert explains, **Copy Command**
+      puts a `sudo mkdir -p … && sudo ln -sf …` line on the clipboard; running
+      it in Terminal produces a working link.
+- [ ] **Already installed / replace:** re-running the flow to the same folder
+      reports "already installed"; with a foreign file named `obfuskode` at
+      the target it asks before replacing (Cancel is the default button);
+      Cancel at the panel and at the alert leaves everything untouched.
+- [ ] **Translocation guard:** launch a quarantined copy (or from a DMG) —
+      the flow shows "Move Obfuskoder to your Applications folder first"
+      instead of the panel.
+- [ ] **Pipelines:** `pbpaste | obfuskode | pbcopy` and
+      `obfuskode < in.html > out.html` work; output pasted into a real page
+      renders the expected link; the snippet contains no `@`.
+- [ ] **Exit codes:** `obfuskode` alone on a TTY prints usage and exits 64
+      (does not hang); `obfuskode -e bad -t x` exits 65; success exits 0
+      (`echo $?`).
+- [ ] **Help window:** Help ▸ Command-Line Tool Help opens the small window;
+      examples are selectable; ⌘W closes it.
+
 ---
 
 ## Appendix A — Test data
