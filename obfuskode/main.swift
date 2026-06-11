@@ -1,0 +1,3 @@
+import ObfuskodeCLI
+
+ObfuskodeCommand.main()
