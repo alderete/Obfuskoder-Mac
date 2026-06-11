@@ -41,8 +41,14 @@ public enum CLIInstall {
     ]
 
     /// INST-10: the copyable Terminal command. The app never runs this itself.
+    /// Paths are single-quoted with embedded quotes escaped ('\'') so the
+    /// command survives copy/paste even for folders containing apostrophes.
     public static func sudoInstallCommand(folder: String, sourcePath: String) -> String {
-        "sudo mkdir -p '\(folder)' && sudo ln -sf '\(sourcePath)' '\(folder)/obfuskode'"
+        "sudo mkdir -p \(shellQuoted(folder)) && sudo ln -sf \(shellQuoted(sourcePath)) \(shellQuoted(folder + "/obfuskode"))"
+    }
+
+    private static func shellQuoted(_ path: String) -> String {
+        "'" + path.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 
     /// INST-6: the panel's initial directory — first existing candidate, else home.

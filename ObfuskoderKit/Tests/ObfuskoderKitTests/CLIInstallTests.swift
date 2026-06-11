@@ -47,6 +47,12 @@ private let source = "/Applications/Obfuskoder.app/Contents/Helpers/obfuskode"
     #expect(command == "sudo mkdir -p '/usr/local/bin' && sudo ln -sf '\(source)' '/usr/local/bin/obfuskode'")
 }
 
+@Test func sudoCommandEscapesSingleQuotes() {             // INST-10: paths may contain apostrophes
+    let command = CLIInstall.sudoInstallCommand(folder: "/Users/mike/Mike's Tools/bin",
+                                                sourcePath: source)
+    #expect(command == "sudo mkdir -p '/Users/mike/Mike'\\''s Tools/bin' && sudo ln -sf '\(source)' '/Users/mike/Mike'\\''s Tools/bin/obfuskode'")
+}
+
 @Test func pathFolderSetCoversEtcPathsAndHomebrew() {     // INST-11
     #expect(CLIInstall.assumedPathFolders.contains("/usr/local/bin"))
     #expect(CLIInstall.assumedPathFolders.contains("/opt/homebrew/bin"))
