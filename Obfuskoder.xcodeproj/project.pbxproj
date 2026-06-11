@@ -7,15 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA00000000000000000000A3 /* ObfuskoderKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000A2 /* ObfuskoderKit */; };
 		0BF5C0DE0000000000000001 /* ObfuskodeCLI in Frameworks */ = {isa = PBXBuildFile; productRef = 0BF5C0DE0000000000000002 /* ObfuskodeCLI */; };
 		0BF5C0DE0000000000000003 /* obfuskode in Embed CLI Tool */ = {isa = PBXBuildFile; fileRef = 0BF5C0DE0000000000000004 /* obfuskode */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		AA00000000000000000000A3 /* ObfuskoderKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000A2 /* ObfuskoderKit */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXFileReference section */
-		9287A9032FD3E0F90061BEF9 /* Obfuskoder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Obfuskoder.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		0BF5C0DE0000000000000004 /* obfuskode */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = obfuskode; sourceTree = BUILT_PRODUCTS_DIR; };
-/* End PBXFileReference section */
+/* Begin PBXContainerItemProxy section */
+		925CC8742FDB269B00B35177 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9287A8FB2FD3E0F90061BEF9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BF5C0DE0000000000000007;
+			remoteInfo = obfuskode;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		0BF5C0DE000000000000000A /* Embed CLI Tool */ = {
@@ -31,46 +36,38 @@
 		};
 /* End PBXCopyFilesBuildPhase section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		0BF5C0DE0000000000000006 /* Exceptions for "obfuskode" folder in "obfuskode" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 0BF5C0DE0000000000000007 /* obfuskode */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+/* Begin PBXFileReference section */
+		0BF5C0DE0000000000000004 /* obfuskode */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = obfuskode; sourceTree = BUILT_PRODUCTS_DIR; };
+		9287A9032FD3E0F90061BEF9 /* Obfuskoder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Obfuskoder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		0BF5C0DE0000000000000005 /* obfuskode */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = obfuskode;
+			sourceTree = "<group>";
+		};
 		9287A9052FD3E0F90061BEF9 /* Obfuskoder */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Obfuskoder;
 			sourceTree = "<group>";
 		};
-		0BF5C0DE0000000000000005 /* obfuskode */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				0BF5C0DE0000000000000006 /* Exceptions for "obfuskode" folder in "obfuskode" target */,
-			);
-			path = obfuskode;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		9287A9002FD3E0F90061BEF9 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AA00000000000000000000A3 /* ObfuskoderKit in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		0BF5C0DE0000000000000008 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				0BF5C0DE0000000000000001 /* ObfuskodeCLI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9287A9002FD3E0F90061BEF9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000000A3 /* ObfuskoderKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -98,6 +95,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0BF5C0DE0000000000000007 /* obfuskode */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0BF5C0DE000000000000000B /* Build configuration list for PBXNativeTarget "obfuskode" */;
+			buildPhases = (
+				0BF5C0DE0000000000000009 /* Sources */,
+				0BF5C0DE0000000000000008 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0BF5C0DE0000000000000005 /* obfuskode */,
+			);
+			name = obfuskode;
+			packageProductDependencies = (
+				0BF5C0DE0000000000000002 /* ObfuskodeCLI */,
+			);
+			productName = obfuskode;
+			productReference = 0BF5C0DE0000000000000004 /* obfuskode */;
+			productType = "com.apple.product-type.tool";
+		};
 		9287A9022FD3E0F90061BEF9 /* Obfuskoder */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9287A90E2FD3E0FA0061BEF9 /* Build configuration list for PBXNativeTarget "Obfuskoder" */;
@@ -122,28 +141,6 @@
 			productName = Obfuskoder;
 			productReference = 9287A9032FD3E0F90061BEF9 /* Obfuskoder.app */;
 			productType = "com.apple.product-type.application";
-		};
-		0BF5C0DE0000000000000007 /* obfuskode */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 0BF5C0DE000000000000000B /* Build configuration list for PBXNativeTarget "obfuskode" */;
-			buildPhases = (
-				0BF5C0DE0000000000000009 /* Sources */,
-				0BF5C0DE0000000000000008 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				0BF5C0DE0000000000000005 /* obfuskode */,
-			);
-			name = obfuskode;
-			packageProductDependencies = (
-				0BF5C0DE0000000000000002 /* ObfuskodeCLI */,
-			);
-			productName = obfuskode;
-			productReference = 0BF5C0DE0000000000000004 /* obfuskode */;
-			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
@@ -194,14 +191,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		9287A8FF2FD3E0F90061BEF9 /* Sources */ = {
+		0BF5C0DE0000000000000009 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0BF5C0DE0000000000000009 /* Sources */ = {
+		9287A8FF2FD3E0F90061BEF9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -214,10 +211,41 @@
 		0BF5C0DE000000000000000D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 0BF5C0DE0000000000000007 /* obfuskode */;
+			targetProxy = 925CC8742FDB269B00B35177 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		0BF5C0DE000000000000000E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEVELOPMENT_TEAM = 49E99H2Q84;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = obfuskode/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldosoft.Obfuskoder.obfuskode;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		0BF5C0DE000000000000000F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEVELOPMENT_TEAM = 49E99H2Q84;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = obfuskode/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldosoft.Obfuskoder.obfuskode;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
 		9287A90C2FD3E0FA0061BEF9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -342,36 +370,6 @@
 			};
 			name = Release;
 		};
-		0BF5C0DE000000000000000E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
-				DEVELOPMENT_TEAM = 49E99H2Q84;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = obfuskode/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldosoft.Obfuskoder.obfuskode;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 6.0;
-			};
-			name = Debug;
-		};
-		0BF5C0DE000000000000000F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
-				DEVELOPMENT_TEAM = 49E99H2Q84;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = obfuskode/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldosoft.Obfuskoder.obfuskode;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 6.0;
-			};
-			name = Release;
-		};
 		9287A90F2FD3E0FA0061BEF9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -437,6 +435,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0BF5C0DE000000000000000B /* Build configuration list for PBXNativeTarget "obfuskode" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0BF5C0DE000000000000000E /* Debug */,
+				0BF5C0DE000000000000000F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		9287A8FE2FD3E0F90061BEF9 /* Build configuration list for PBXProject "Obfuskoder" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -455,15 +462,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		0BF5C0DE000000000000000B /* Build configuration list for PBXNativeTarget "obfuskode" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				0BF5C0DE000000000000000E /* Debug */,
-				0BF5C0DE000000000000000F /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -474,13 +472,13 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		AA00000000000000000000A2 /* ObfuskoderKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = ObfuskoderKit;
-		};
 		0BF5C0DE0000000000000002 /* ObfuskodeCLI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ObfuskodeCLI;
+		};
+		AA00000000000000000000A2 /* ObfuskoderKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ObfuskoderKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
