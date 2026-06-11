@@ -74,11 +74,55 @@ public struct ObfuskodeCommand: ParsableCommand {
     }
 }
 
-extension ObfuskodeCommand {
-    /// Replaced in the next commit by the real I/O layer.
-    static func execute(input: CLIInput, io: CLIIO) throws {}
+/// Injected I/O seams (SPEC-CLI §7.1): tests capture; `.live` is the process.
+public struct CLIIO {
+    public var readStdin: () -> Data?
+    public var stdinIsTTY: () -> Bool
+    public var writeOut: (String) -> Void
+    public var writeErr: (String) -> Void
+
+    public init(readStdin: @escaping () -> Data?,
+                stdinIsTTY: @escaping () -> Bool,
+                writeOut: @escaping (String) -> Void,
+                writeErr: @escaping (String) -> Void) {
+        self.readStdin = readStdin
+        self.stdinIsTTY = stdinIsTTY
+        self.writeOut = writeOut
+        self.writeErr = writeErr
+    }
+
+    public static var live: CLIIO {
+        CLIIO(
+            readStdin: { try? FileHandle.standardInput.readToEnd() },
+            stdinIsTTY: { isatty(STDIN_FILENO) == 1 },
+            writeOut: { FileHandle.standardOutput.write(Data($0.utf8)) },
+            writeErr: { FileHandle.standardError.write(Data($0.utf8)) }
+        )
+    }
 }
 
-public struct CLIIO: Sendable {
-    public static let live = CLIIO()
+extension ObfuskodeCommand {
+    /// Runs the pipeline and maps failures to the §5.7 exit codes.
+    /// Usage failures re-throw as ValidationError so ArgumentParser prints
+    /// usage and exits 64; data/software failures write "obfuskode: <msg>"
+    /// to stderr and exit 65 / 70.
+    public static func execute(input: CLIInput, io: CLIIO) throws {
+        do {
+            let snippet = try ObfuskodeCLICore.run(input,
+                                                   readStdin: io.readStdin,
+                                                   stdinIsTTY: io.stdinIsTTY)
+            io.writeOut(snippet + "\n")                       // CLI-15
+        } catch let failure as CLIFailure {
+            switch failure {
+            case .usage(let message):
+                throw ValidationError(message)
+            case .data(let message):
+                io.writeErr("obfuskode: \(message)\n")
+                throw ExitCode(65)
+            case .software(let message):
+                io.writeErr("obfuskode: \(message)\n")
+                throw ExitCode(70)
+            }
+        }
+    }
 }
