@@ -97,3 +97,39 @@ private func basicInput(email: String? = "sue@example.com",
         Issue.record("unexpected error type: \(error)")
     }
 }
+
+@Test func stdinModeEncodesPipedHTML() throws {
+    let input = basicInput(email: nil, linkText: nil)
+    let snippet = try runCore(input, stdinData: Data("<b>hi</b>".utf8))
+    #expect(snippet.contains("<script"))
+}
+
+@Test func emptyStdinIsDataError() {
+    #expect(throws: CLIFailure.data("no HTML to obfuskode (input is empty)")) {
+        _ = try runCore(basicInput(email: nil, linkText: nil), stdinData: Data())
+    }
+}
+
+@Test func nilStdinIsDataError() {
+    #expect(throws: CLIFailure.data("no HTML to obfuskode (input is empty)")) {
+        _ = try runCore(basicInput(email: nil, linkText: nil), stdinData: nil)
+    }
+}
+
+@Test func invalidUTF8StdinIsDataError() {             // CLI-14
+    #expect(throws: CLIFailure.data("standard input is not valid UTF-8")) {
+        _ = try runCore(basicInput(email: nil, linkText: nil),
+                        stdinData: Data([0xFF, 0xFE, 0xFD]))
+    }
+}
+
+@Test func ttyWithNoInputIsUsageError() {              // CLI-7: never hang on a TTY
+    #expect(throws: CLIFailure.usage("missing input: pass --email or --html, or pipe HTML to standard input")) {
+        _ = try runCore(basicInput(email: nil, linkText: nil), tty: true)
+    }
+}
+
+@Test func flagsTakePrecedenceOverStdin() throws {     // CLI-8: stdin ignored when a flag is given
+    let snippet = try runCore(basicInput(), stdinData: Data("<b>ignored</b>".utf8))
+    #expect(!snippet.contains("ignored"))
+}
