@@ -1,4 +1,5 @@
 import Foundation
+import ObfuskoderKit
 
 /// The parsed invocation, decoupled from ArgumentParser for testability (SPEC-CLI §7.1).
 public struct CLIInput: Equatable, Sendable {
@@ -26,4 +27,83 @@ public enum CLIFailure: Error, Equatable, Sendable {
     case usage(String)     // exit 64 via ValidationError
     case data(String)      // exit 65
     case software(String)  // exit 70
+}
+
+/// The tool's pure pipeline: validate → canonical HTML → engine encode (SPEC-CLI §5).
+public enum ObfuskodeCLICore {
+    /// Runs one invocation and returns the verified snippet (no trailing newline).
+    /// `readStdin`/`stdinIsTTY` are injected so tests never touch a real terminal.
+    public static func run(_ input: CLIInput,
+                           readStdin: () -> Data?,
+                           stdinIsTTY: () -> Bool) throws -> String {
+        // CLI-12: an '@' in the fallback would fail ENC-3 on every attempt.
+        guard !input.fallback.contains("@") else {
+            throw CLIFailure.data("the fallback message must not contain the '@' character")
+        }
+
+        let canonical: String
+        var leakCheckEmail: String?
+
+        if let email = input.email {
+            // Basic mode (CLI-10, CLI-11); same construction as the app (§5.3).
+            let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard EmailValidator.isValid(trimmedEmail) else {
+                throw CLIFailure.data("'\(email)' is not a valid email address")
+            }
+            let text = (input.linkText ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else {
+                throw CLIFailure.data("the link text must not be empty")
+            }
+            let fields = BasicFields(email: trimmedEmail,
+                                     linkText: input.linkText ?? "",
+                                     linkTitle: input.linkTitle ?? "",
+                                     subject: input.subject ?? "")
+            guard let html = fields.canonicalHTML() else {
+                // Unreachable after the guards above; defensive.
+                throw CLIFailure.data("the basic fields could not be combined into a link")
+            }
+            canonical = html
+            leakCheckEmail = trimmedEmail                       // CLI-9
+        } else if let html = input.html {
+            canonical = try advancedInput(html)
+        } else {
+            canonical = try advancedInput(readFromStdin(readStdin: readStdin,
+                                                        stdinIsTTY: stdinIsTTY))
+        }
+
+        let engine = ObfuskodeEngine(fallbackMessage: input.fallback)
+        do {
+            return try engine.encode(canonical, email: leakCheckEmail).html
+        } catch {
+            throw CLIFailure.software("""
+                the encoded snippet failed its self-check repeatedly.
+                This can happen when the fallback message contains the input text
+                (the snippet would leak it). Otherwise, please report this bug.
+                """)
+        }
+    }
+
+    /// CLI-13: Advanced input is trimmed and must be non-empty.
+    private static func advancedInput(_ raw: String) throws -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw CLIFailure.data("no HTML to obfuskode (input is empty)")
+        }
+        return trimmed
+    }
+
+    /// CLI-7 / CLI-14: stdin is read only when it is not a TTY.
+    private static func readFromStdin(readStdin: () -> Data?,
+                                      stdinIsTTY: () -> Bool) throws -> String {
+        guard !stdinIsTTY() else {
+            throw CLIFailure.usage("missing input: pass --email or --html, or pipe HTML to standard input")
+        }
+        guard let data = readStdin(), !data.isEmpty else {
+            throw CLIFailure.data("no HTML to obfuskode (input is empty)")
+        }
+        guard let text = String(data: data, encoding: .utf8) else {
+            throw CLIFailure.data("standard input is not valid UTF-8")
+        }
+        return text
+    }
 }
