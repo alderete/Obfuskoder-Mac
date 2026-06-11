@@ -18,9 +18,10 @@ enum CLIToolInstaller {
         let source = Bundle.main.bundleURL
             .appendingPathComponent("Contents/Helpers/\(toolName)")
             .standardizedFileURL
-        // INST-5: never create a dangling link.
+        // INST-5: never offer a path to a dangling link — not even via Terminal.
         guard FileManager.default.fileExists(atPath: source.path) else {
-            presentFailure(folder: defaultFolder(), source: source.path, reason: nil)
+            presentInfo(title: UIStrings.cliMissingToolTitle,
+                        body: UIStrings.cliMissingToolBody)
             return
         }
         // INST-6: the panel IS the sandbox permission grant.

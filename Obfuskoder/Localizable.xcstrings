@@ -166,7 +166,13 @@
     "Obfuskoder is running from a temporary location. A command-line tool installed now would stop working. Move Obfuskoder to your Applications folder, then choose Install Command Line Tool again." : {
 
     },
+    "Reinstall Obfuskoder, then choose Install Command Line Tool again." : {
+
+    },
     "Replacing it will remove the existing item and create a link to the tool inside Obfuskoder." : {
+
+    },
+    "The command-line tool is missing from this copy of Obfuskoder." : {
 
     },
     "The obfuskode command-line tool was installed." : {

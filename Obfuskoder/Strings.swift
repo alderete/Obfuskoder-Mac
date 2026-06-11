@@ -63,6 +63,8 @@ enum UIStrings {
     static let cliInstallPanelMessage = String(localized: "Choose where to install the obfuskode command-line tool. A symbolic link to the tool inside Obfuskoder will be created in this folder.")
     static let cliMoveToApplicationsTitle = String(localized: "Move Obfuskoder to your Applications folder first.")
     static let cliMoveToApplicationsBody = String(localized: "Obfuskoder is running from a temporary location. A command-line tool installed now would stop working. Move Obfuskoder to your Applications folder, then choose Install Command Line Tool again.")
+    static let cliMissingToolTitle = String(localized: "The command-line tool is missing from this copy of Obfuskoder.")
+    static let cliMissingToolBody = String(localized: "Reinstall Obfuskoder, then choose Install Command Line Tool again.")
     static let cliReplaceTitle = String(localized: "An item named \u{201C}obfuskode\u{201D} already exists in this folder.")
     static let cliReplaceBody = String(localized: "Replacing it will remove the existing item and create a link to the tool inside Obfuskoder.")
     static let cliFailTitle = String(localized: "Obfuskoder couldn't install the command-line tool there.")

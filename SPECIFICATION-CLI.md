@@ -278,8 +278,9 @@ Before showing any chooser:
 - **INST-5** The link **source** is resolved at install time as
   `Bundle.main.bundleURL` + `Contents/Helpers/obfuskode`, standardized
   (symlinks in the bundle path resolved). If that file unexpectedly does not
-  exist, show the generic failure alert (INST-10) — never create a dangling
-  link.
+  exist (a corrupted install), show an informational alert telling the user
+  to reinstall Obfuskoder — and offer **no** Terminal command, since the only
+  thing it could create is a dangling link.
 
 ### 6.3 Choosing the destination
 
