@@ -57,6 +57,34 @@ enum UIStrings {
     static let settingsEncodingDelay = String(localized: "Encoding delay")
     static let settingsFallbackMessage = String(localized: "No-JavaScript fallback message")
 
+    // Command-line tool install (SPEC-CLI §6)
+    static let installCLITool = String(localized: "Install Command Line Tool…")
+    static let cliInstallPrompt = String(localized: "Install")
+    static let cliInstallPanelMessage = String(localized: "Choose where to install the obfuskode command-line tool. A symbolic link to the tool inside Obfuskoder will be created in this folder.")
+    static let cliMoveToApplicationsTitle = String(localized: "Move Obfuskoder to your Applications folder first.")
+    static let cliMoveToApplicationsBody = String(localized: "Obfuskoder is running from a temporary location. A command-line tool installed now would stop working. Move Obfuskoder to your Applications folder, then choose Install Command Line Tool again.")
+    static let cliReplaceTitle = String(localized: "An item named \u{201C}obfuskode\u{201D} already exists in this folder.")
+    static let cliReplaceBody = String(localized: "Replacing it will remove the existing item and create a link to the tool inside Obfuskoder.")
+    static let cliFailTitle = String(localized: "Obfuskoder couldn't install the command-line tool there.")
+    static let cliFailReasonDirectory = String(localized: "A folder named \u{201C}obfuskode\u{201D} is in the way.")
+    static func cliFailReasonPermission(folder: String) -> String {
+        String(localized: "You don't have permission to write to \(folder).")
+    }
+    static func cliFailBody(reason: String, command: String) -> String {
+        String(localized: "\(reason) You can install it yourself by running this command in Terminal:\n\n\(command)")
+    }
+    static let cliCopyCommand = String(localized: "Copy Command")
+    static let cliSuccessTitle = String(localized: "The obfuskode command-line tool was installed.")
+    static func cliSuccessBody(target: String) -> String {
+        String(localized: "A link was created at \(target).")
+    }
+    static func cliAlreadyInstalledBody(target: String) -> String {
+        String(localized: "The tool is already installed at \(target).")
+    }
+    static func cliPathHint(folder: String) -> String {
+        String(localized: "If \(folder) isn't in your shell's PATH, add it to run obfuskode by name.")
+    }
+
     // Helpers
     static func hintAccessibilityLabel(for field: String) -> String {
         String(localized: "\(field) help")

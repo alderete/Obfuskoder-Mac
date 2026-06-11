@@ -10,6 +10,10 @@ struct AppCommands: Commands {
     let model: AppModel
 
     var body: some Commands {
+        // Obfuskoder ▸ Install Command Line Tool… (SPEC-CLI §6.1)
+        CommandGroup(after: .appSettings) {
+            Button(UIStrings.installCLITool) { CLIToolInstaller.run() }
+        }
         // View ▸ Basic / Advanced / Show-Hide Decoded Source
         CommandGroup(after: .toolbar) {
             Button(UIStrings.basic) { model.form.mode = .basic; model.scheduleEncode() }
