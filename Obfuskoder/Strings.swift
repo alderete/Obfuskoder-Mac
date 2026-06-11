@@ -85,6 +85,13 @@ enum UIStrings {
         String(localized: "If \(folder) isn't in your shell's PATH, add it to run obfuskode by name.")
     }
 
+    // Command-line tool help window (SPEC-CLI §11.2)
+    static let cliHelpMenu = String(localized: "Command-Line Tool Help")
+    static let cliHelpWindowTitle = String(localized: "Command-Line Tool")
+    static let cliHelpIntro = String(localized: "Obfuskoder includes obfuskode, a command-line version of the encoder, for scripts and pipelines.")
+    static let cliHelpInstall = String(localized: "Install it with Obfuskoder ▸ Install Command Line Tool…, then run it from Terminal:")
+    static let cliHelpOutro = String(localized: "The obfuscated snippet is written to standard output. For all options, run obfuskode --help.")
+
     // Helpers
     static func hintAccessibilityLabel(for field: String) -> String {
         String(localized: "\(field) help")

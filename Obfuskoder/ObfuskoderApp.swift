@@ -22,6 +22,13 @@ struct ObfuskoderApp: App {
             SettingsView()
                 .environment(model)
         }
+
+        // SPEC-CLI §11.2 — small fixed-size help window, closes with ⌘W.
+        Window(UIStrings.cliHelpWindowTitle, id: "cli-help") {
+            CLIHelpView()
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 
     /// presets.json in the sandbox Application Support container (SPEC §6.7/§9.2).

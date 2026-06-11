@@ -8,6 +8,7 @@ extension Notification.Name {
 
 struct AppCommands: Commands {
     let model: AppModel
+    @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
         // Obfuskoder ▸ Install Command Line Tool… (SPEC-CLI §6.1)
@@ -43,6 +44,10 @@ struct AppCommands: Commands {
             .keyboardShortcut("k", modifiers: .command)
             .disabled(model.form.activeIsEmpty)
             Divider()
+        }
+        // Help ▸ Command-Line Tool Help (SPEC-CLI §11.2)
+        CommandGroup(after: .help) {
+            Button(UIStrings.cliHelpMenu) { openWindow(id: "cli-help") }
         }
     }
 }
