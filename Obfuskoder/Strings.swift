@@ -31,7 +31,8 @@ enum UIStrings {
     static let previewHeading = String(localized: "Preview")
     static let previewNonInteractive = String(localized: "Preview is non-interactive")
     static let showDecodedSource = String(localized: "Show decoded source")
-    static let emptyResult = String(localized: "Enter a valid email or HTML to generate a snippet.")
+    static let emptySnippet = String(localized: "Enter form values to generate a snippet")
+    static let emptyPreview = String(localized: "Preview renders once there's a snippet")
     static let encodeFailed = String(localized: "Could not generate a valid snippet. Check your input.")
 
     // Saved values (working label)

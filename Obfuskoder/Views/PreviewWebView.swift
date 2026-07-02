@@ -4,8 +4,10 @@ import WebKit
 /// Read-only WKWebView that runs the actual snippet (SPEC §6.6). No network:
 /// a `default-src 'none'` CSP in the wrapper blocks every remote subresource the
 /// navigation delegate can't (images, CSS, fetch, frames), and link clicks are
-/// intercepted. The page paints its own appearance-adaptive `Canvas` background via
-/// public API — no private `drawsBackground` KVC. Text isn't selectable; interaction
+/// intercepted. The page paints its own appearance-adaptive background — `Canvas`
+/// tinted 5% toward `CanvasText` so the preview reads as display-only next to the
+/// snippet's textBackgroundColor surface (WIN-4) — via public API, no private
+/// `drawsBackground` KVC. Text isn't selectable; interaction
 /// attempts are reported via `onInteractionAttempt` so the UI can say so.
 struct PreviewWebView: NSViewRepresentable {
     let html: String
@@ -13,6 +15,9 @@ struct PreviewWebView: NSViewRepresentable {
     /// re-encode of the same input — to avoid needless WebContent churn.
     let reloadKey: String
     var onInteractionAttempt: () -> Void = {}
+    /// Reports the rendered document's natural height after each load, so the
+    /// pane can size the preview to its content (WIN-3).
+    var onContentHeight: (CGFloat) -> Void = { _ in }
 
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -31,7 +36,7 @@ struct PreviewWebView: NSViewRepresentable {
         script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; \
         connect-src 'none'; media-src data: blob:; font-src data:; frame-src 'none'; \
         base-uri 'none'; form-action 'none'">
-        <style>html,body{background:Canvas;color:CanvasText}\
+        <style>html,body{background:color-mix(in srgb, Canvas 95%, CanvasText 5%);color:CanvasText}\
         body{font:13px -apple-system,system-ui,sans-serif;margin:8px;\
         -webkit-user-select:none;user-select:none}</style>
         </head><body>\(html)</body></html>
@@ -45,6 +50,14 @@ struct PreviewWebView: NSViewRepresentable {
         var parent: PreviewWebView
         var lastKey: String?
         init(_ parent: PreviewWebView) { self.parent = parent }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            // body margin (8pt top and bottom) isn't part of scrollHeight.
+            webView.evaluateJavaScript("document.body.scrollHeight") { [weak self] result, _ in
+                guard let self, let h = result as? Double else { return }
+                self.parent.onContentHeight(CGFloat(h) + 16)
+            }
+        }
 
         func webView(_ webView: WKWebView,
                      decidePolicyFor navigationAction: WKNavigationAction,

@@ -5,11 +5,13 @@ import AppKit
 struct MacTextField: NSViewRepresentable {
     @Binding var text: String
     var placeholder: String = ""
+    var formatter: Formatter?
     var onChange: () -> Void = {}
 
     func makeNSView(context: Context) -> NSTextField {
         let field = NoSubstitutionTextField()
         field.placeholderString = placeholder
+        field.formatter = formatter
         field.delegate = context.coordinator
         field.isBordered = true
         field.bezelStyle = .roundedBezel

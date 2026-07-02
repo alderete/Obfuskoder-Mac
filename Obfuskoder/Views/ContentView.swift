@@ -15,7 +15,10 @@ struct ContentView: View {
         @Bindable var model = model
         HSplitView {
             InputPane(model: model)
-                .frame(minWidth: 320)
+                // Basic form's content needs ~355pt (label column + 220pt field
+                // + hint button + padding); below that the trailing hint buttons
+                // slide under the divider (WIN-1).
+                .frame(minWidth: 370)
             ResultPane(model: model)
                 .frame(minWidth: 320)
         }
