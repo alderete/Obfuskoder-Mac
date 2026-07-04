@@ -265,8 +265,14 @@ needed before building · (no tag) = polish/enhancement.
       (needs a VO listen at next a11y pass). Verified: click-to-jump, drag,
       and arrow keys all move the value (0.35→0.40→0.45→0.40 measured in
       defaults); value updates live inside the knob (screenshots at 0.25/0.55/
-      0.80). One unexplained 0.25→0.55 jump during automation never
-      reproduced — watch for phantom value changes in manual use.
+      0.80). **Bug fixed 2026-07-04 (MA report):** knob undraggable at ≥0.90 —
+      the ZStack's hit area came from its layout bounds, which `offset()`
+      children don't grow, so the drag rectangle ended one knob-width short of
+      the right edge (track clicks and arrows unaffected; positional, hence
+      "persisting" across reopens). Fixed by framing the ZStack to the full
+      GeometryReader size before `contentShape`. Verified: re-grabbing the
+      knob at max now drags. This also explains the earlier "phantom
+      0.25→0.55 jump" — dead-zone grabs fell through to track click-to-jump.
 - [x] **CTRL-5** — Settings: left-align the fallback-message text (right-align is
       an iOS-ism). *(§7)*
       **Closed 2026-07-03: already fixed by FIX-2** — swapping the SwiftUI
@@ -374,6 +380,27 @@ needed before building · (no tag) = polish/enhancement.
       CLI-6/CLI-11/options table, test plan 3.1a + 4.6/4.7. Verified: 95 Kit/CLI
       tests green; live app (email-only snippet, ghost text, Tab fill) and
       embedded CLI (email-only encode, 0 `@`s) both exercised.
+
+- [x] **BEH-2** — Manual-test tweaks (2026-07-04): (1) ghost/placeholder text
+      lightened to `tertiaryLabelColor` via attributed placeholder in
+      `MacTextField` — the default placeholder gray read nearly as dark as real
+      text at 15pt (applies to Link text and the Settings fallback field);
+      (2) the "Show decoded source" disclosure now toggles from the label text
+      as well as the triangle. Both verified live (pixel sample #717171 vs
+      near-black; label click opens and closes).
+
+- [x] **BEH-3** — Saved Values menu: stale-items bug + overflow design
+      (MA report 2026-07-04). **Bug:** renames/deletes in the Manage panel
+      never reached the menu — presets were read only inside the Menu content
+      closure and the bridged NSMenu never rebuilt. Fixed by reading
+      `store.presets` in `body` and keying the Menu's `.id` to the preset
+      list (ids+names). **Design:** menu now lists the first 3 presets
+      (`menuPresetLimit`, code-level setting) then a "{n} additional item(s)"
+      row that opens Manage (explicit singular/plural strings — the
+      `^[…](inflect: true)` grammar markup failed to pluralize). Verified
+      live: 5 presets → "2 additional items"; 4 → "1 additional item";
+      3 → no summary row; summary opens the panel; panel rename appears in
+      the menu immediately.
 
 ## 9. Testing gaps (re-test, not build)
 

@@ -8,16 +8,30 @@ struct SavedValuesBar: View {
     @State private var showSaveSheet = false
     @State private var showManageSheet = false
 
+    /// How many presets the menu lists before the "{n} additional items"
+    /// summary row. A code-level setting, not an app preference.
+    private static let menuPresetLimit = 3
+
     var body: some View {
+        // Read presets in body (not only inside the Menu content closure) so
+        // every store change re-renders, and key the Menu's identity to the
+        // list so the bridged NSMenu is rebuilt — without this, renames and
+        // deletes in the Manage panel leave the menu showing stale items.
+        let presets = store.presets
         HStack {
             // Combo (split) button: clicking the label opens Manage Saved
             // Values; the divided indicator section opens the full menu.
             Menu(UIStrings.savedValues) {
                 Button(UIStrings.saveCurrentValues) { showSaveSheet = true }
-                if !store.presets.isEmpty {
+                if !presets.isEmpty {
                     Divider()
-                    ForEach(store.presets) { preset in
+                    ForEach(presets.prefix(Self.menuPresetLimit)) { preset in
                         Button(preset.name) { model.apply(preset) }
+                    }
+                    if presets.count > Self.menuPresetLimit {
+                        Button(UIStrings.additionalItems(count: presets.count - Self.menuPresetLimit)) {
+                            showManageSheet = true
+                        }
                     }
                     Divider()
                     Button(UIStrings.manageSavedValues) { showManageSheet = true }
@@ -26,6 +40,7 @@ struct SavedValuesBar: View {
                 showManageSheet = true
             }
             .fixedSize()
+            .id(presets.map { $0.id.uuidString + $0.name }.joined(separator: "|"))
 
             Spacer()
 

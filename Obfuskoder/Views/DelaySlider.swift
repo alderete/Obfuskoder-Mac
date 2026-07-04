@@ -44,6 +44,11 @@ struct DelaySlider: View {
 
                 knob.offset(x: travel * fraction, y: 0)
             }
+            // Fill the GeometryReader before shaping the hit area: offset()
+            // children don't grow layout bounds, so without this the hit
+            // rectangle ends one knob-width short of the right edge and the
+            // knob can't be grabbed at high values.
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)

@@ -31,7 +31,14 @@ struct MacTextField: NSViewRepresentable {
     func updateNSView(_ nsView: NSTextField, context: Context) {
         context.coordinator.parent = self
         if nsView.stringValue != text { nsView.stringValue = text }
-        nsView.placeholderString = placeholder
+        // Attributed placeholder: the default placeholder gray reads nearly as
+        // dark as real text at the field size; tertiaryLabelColor keeps ghost
+        // text clearly ghostly.
+        nsView.placeholderAttributedString = placeholder.isEmpty ? nil :
+            NSAttributedString(string: placeholder, attributes: [
+                .foregroundColor: NSColor.tertiaryLabelColor,
+                .font: nsView.font ?? NSFont.systemFont(ofSize: NSFont.systemFontSize),
+            ])
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }

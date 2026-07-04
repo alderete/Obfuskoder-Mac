@@ -61,13 +61,18 @@ struct ResultPane: View {
                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
 
                 if model.decodedSource != nil {
-                    DisclosureGroup(UIStrings.showDecodedSource, isExpanded: $model.showDecodedSource) {
+                    DisclosureGroup(isExpanded: $model.showDecodedSource) {
                         ScrollView {
                             Text(model.decodedSource ?? "")
                                 .font(.system(.caption, design: .monospaced))
                                 .textSelection(.enabled)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
+                    } label: {
+                        // The label toggles too — not just the triangle.
+                        Text(UIStrings.showDecodedSource)
+                            .contentShape(Rectangle())
+                            .onTapGesture { model.showDecodedSource.toggle() }
                     }
                 }
                 Spacer(minLength: 0)

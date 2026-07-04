@@ -105,7 +105,9 @@ For **each** Basic field (Email, Link text, Link title, Subject):
 - [ ] 10.4 Switch to Advanced, enter HTML, **File menu ▸ Save Current Values… (⌘S)** → the name sheet appears; save as `HTML snippet`. Recall it → mode switches to Advanced with that HTML.
 - [ ] 10.5 **Saved Values ▾ → Manage Saved Values…** → rename an entry (edit the name in place, press Return), delete one (trash appears on hover; also in the row's context menu), and **drag a row's gripper to reorder** — the lifted row follows the pointer and the others animate out of the way → the menu reflects all changes.
 - [ ] 10.6 Delete all presets → the **Saved Values** menu shows only **Save Current Values…** (no list, no Manage…).
-- [ ] 10.7 Save a preset, **Quit and relaunch** → the preset is **still there** (persisted).
+- [ ] 10.7 With more than 3 presets saved → the menu lists only the **first 3**, then **"{n} additional item(s)"** (singular/plural correct) which opens **Manage Saved Values** like the real item. With ≤3, no summary row.
+- [ ] 10.7a Rename or delete a preset in the Manage panel → the **Saved Values menu reflects it immediately**.
+- [ ] 10.8 Save a preset, **Quit and relaunch** → the preset is **still there** (persisted).
 
 ## 11. Clear Form + Undo
 

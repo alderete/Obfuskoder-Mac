@@ -39,6 +39,13 @@ enum UIStrings {
     static let savedValues = String(localized: "Saved Values")
     // Panel title has no ellipsis; the menu item that opens it keeps one (HIG).
     static let manageSavedValuesTitle = String(localized: "Manage Saved Values")
+    /// "{n} additional item(s)". Explicit singular/plural keys — the automatic
+    /// grammar-agreement markup (^[…](inflect: true)) failed to pluralize here.
+    static func additionalItems(count: Int) -> String {
+        count == 1
+            ? String(localized: "1 additional item")
+            : String(localized: "\(count) additional items")
+    }
     static let manageEmptyMessage = String(localized: "No saved values yet")
     static let moveUp = String(localized: "Move Up")
     static let moveDown = String(localized: "Move Down")
