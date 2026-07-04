@@ -110,8 +110,9 @@ struct DelaySlider: View {
 }
 
 /// Home-plate pentagon: flat top, squared shoulders, angled lower edges
-/// meeting at a downward point.
-struct HomePlate: Shape {
+/// meeting at a downward point. nonisolated: Shape.path(in:) is a nonisolated
+/// requirement, and this is pure geometry — same pattern as NoAtSignFormatter.
+nonisolated struct HomePlate: Shape {
     var pointHeight: CGFloat = 9
     var cornerRadius: CGFloat = 5
 
