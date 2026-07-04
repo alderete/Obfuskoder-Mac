@@ -37,6 +37,11 @@ enum UIStrings {
 
     // Saved values
     static let savedValues = String(localized: "Saved Values")
+    // Panel title has no ellipsis; the menu item that opens it keeps one (HIG).
+    static let manageSavedValuesTitle = String(localized: "Manage Saved Values")
+    static let manageEmptyMessage = String(localized: "No saved values yet")
+    static let moveUp = String(localized: "Move Up")
+    static let moveDown = String(localized: "Move Down")
     static let saveCurrentValues = String(localized: "Save Current Values…")
     static let manageSavedValues = String(localized: "Manage Saved Values…")
     static let clearForm = String(localized: "Clear Form")

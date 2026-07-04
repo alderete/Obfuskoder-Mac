@@ -102,7 +102,7 @@ For **each** Basic field (Email, Link text, Link title, Subject):
 - [ ] 10.2 Change the form, then **Saved Values ▾ → Personal** → the form is **restored** to the saved values (mode + fields).
 - [ ] 10.3 Save again with the name `Personal` (duplicate) → the sheet shows **"A saved set with that name already exists"** and offers **Replace** → Replace updates it.
 - [ ] 10.4 Switch to Advanced, enter HTML, **File menu ▸ Save Current Values… (⌘S)** → the name sheet appears; save as `HTML snippet`. Recall it → mode switches to Advanced with that HTML.
-- [ ] 10.5 **Saved Values ▾ → Manage Saved Values…** → rename an entry (edit text, press Return), delete one (trash), and **drag to reorder** → the menu reflects all changes.
+- [ ] 10.5 **Saved Values ▾ → Manage Saved Values…** → rename an entry (edit the name in place, press Return), delete one (trash appears on hover; also in the row's context menu), and **drag a row's gripper to reorder** — the lifted row follows the pointer and the others animate out of the way → the menu reflects all changes.
 - [ ] 10.6 Delete all presets → the **Saved Values** menu shows only **Save Current Values…** (no list, no Manage…).
 - [ ] 10.7 Save a preset, **Quit and relaunch** → the preset is **still there** (persisted).
 

@@ -333,11 +333,29 @@ needed before building · (no tag) = polish/enhancement.
 
 ## 8. Mac-native custom UI (larger effort — do once layout is stable)
 
-- [ ] **MAC-1** — Saved-values reordering should use gripper handles with dynamic,
+- [x] **MAC-1** — Saved-values reordering should use gripper handles with dynamic,
       animated reordering of the actual rows, not a moving insertion point with
-      instant reordering. *(§10)* **Details:**
-- [ ] **MAC-2** — Manage Saved Values panel: drop the ellipsis from the window
-      title; redesign to look less generic / more Mac-native. *(§10)* **Details:**
+      instant reordering. *(§10)*
+      **Fixed 2026-07-03:** custom drag engine in `ManagePresetsSheet` (List's
+      `onMove` can't do live-follow on macOS): dragging the gripper lifts the
+      row (shadow + scale + zIndex), it tracks the pointer 1:1, others spring
+      out of the way as thresholds cross; drop commits through `store.move`.
+      ⚠️ Gesture must use `coordinateSpace: .global` — local space feeds back
+      through the row's own offset and reads ~half the distance (found when a
+      2-row drag landed 1 row short). Context menu (Move Up/Down/Delete) is
+      the keyboard/a11y path. Verified: 2-row drags land exactly, order
+      persists to presets.json.
+- [x] **MAC-2** — Manage Saved Values panel: drop the ellipsis from the window
+      title; redesign to look less generic / more Mac-native. *(§10)*
+      **Fixed 2026-07-03:** title "Manage Saved Values" (menu item keeps its
+      ellipsis per HIG). Rows on the app's white "live" surface (WIN-4
+      language): gripper, mode glyph (envelope = Basic, `</>` = Advanced),
+      edit-in-place plain-style name, secondary detail line (email / monospaced
+      HTML snippet), hover-revealed trash, inset dividers; empty state message;
+      list height scales 3–6 rows. Test plan 10.5 updated. Verified by
+      screenshots + live rename/reorder/persistence. Open knob: first name
+      field grabs focus when the panel opens (Return then renames instead of
+      dismissing) — flag if it bothers.
 
 ## 9. Testing gaps (re-test, not build)
 
