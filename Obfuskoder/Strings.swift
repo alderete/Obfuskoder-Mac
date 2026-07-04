@@ -35,14 +35,20 @@ enum UIStrings {
     static let emptyPreview = String(localized: "Preview renders once there's a snippet")
     static let encodeFailed = String(localized: "Could not generate a valid snippet. Check your input.")
 
-    // Saved values (working label)
-    static let savedValues = String(localized: "Saved values")
+    // Saved values
+    static let savedValues = String(localized: "Saved Values")
     static let saveCurrentValues = String(localized: "Save Current Values…")
     static let manageSavedValues = String(localized: "Manage Saved Values…")
     static let clearForm = String(localized: "Clear Form")
     static let modeLabel = String(localized: "Input mode")
-    static let toggleDecodedSource = String(localized: "Show/Hide Decoded Source")
+    static let showDecodedSourceMenu = String(localized: "Show Decoded Source")
+    static let hideDecodedSourceMenu = String(localized: "Hide Decoded Source")
     static let presetNameField = String(localized: "Preset name")
+
+    // About (MENU-1)
+    static let aboutMenuItem = String(localized: "About Obfuskoder")
+    static let aboutTagline = String(localized: "Turn an email address into a JavaScript-obfuscated snippet that bots (maybe) can't read but visitors can.")
+    static let aboutAttribution = String(localized: "Inspired by Enkoder.")
 
     // Sheets
     static let presetNamePrompt = String(localized: "Name for these values:")
@@ -88,12 +94,25 @@ enum UIStrings {
         String(localized: "If \(folder) isn't in your shell's PATH, add it to run obfuskode by name.")
     }
 
+    // App help window (MENU-4) — content distilled from README/SPECIFICATION.
+    // Inline `code`/**bold** markdown renders via Text(inlineMarkdown:).
+    static let appHelpMenu = String(localized: "Obfuskoder Help")
+    static let appHelpWindowTitle = String(localized: "Obfuskoder Help")
+    static let appHelpIntro = String(localized: "Obfuskoder turns an email address — or an arbitrary HTML snippet — into an obfuscated HTML+JavaScript snippet you can paste into your own web page. Visitors see a normal mail link; email-harvesting bots that don't run JavaScript see only opaque code.")
+    static let appHelpModes = String(localized: "**Basic** (⌘1) builds the snippet from an email address, link text, and optional link title and subject. **Advanced** (⌘2) obfuscates any HTML you paste — whatever you enter round-trips verbatim.")
+    static let appHelpPreview = String(localized: "The snippet updates as you type, and the Preview runs it in a real web view — what you see is the decoded result, not a mock-up. The preview is deliberately non-interactive: clicking the link won't open Mail. Show Decoded Source reveals the exact HTML the snippet writes.")
+    static let appHelpGuarantee = String(localized: "The snippet never contains the @ character or a readable copy of the address — every encode is verified by executing it. Encoding is intentionally randomized: the same input produces a different snippet each time, and every snippet decodes identically.")
+    static let appHelpSaved = String(localized: "Use Saved Values (⌘S) to keep sets of frequently used values and recall them later.")
+    static let appHelpPrivacy = String(localized: "Obfuskoder makes no network connections of any kind. Saved values and settings are stored locally only.")
+    static let appHelpCLIPointer = String(localized: "For scripts and pipelines, Obfuskoder includes the `obfuskode` command-line tool — see Help ▸ Obfuskoder CLI Help.")
+
     // Command-line tool help window (SPEC-CLI §11.2)
-    static let cliHelpMenu = String(localized: "Command-Line Tool Help")
-    static let cliHelpWindowTitle = String(localized: "Command-Line Tool")
-    static let cliHelpIntro = String(localized: "Obfuskoder includes obfuskode, a command-line version of the encoder, for scripts and pipelines.")
+    // Inline `code` markdown renders monospaced in CLIHelpView (MENU-5).
+    static let cliHelpMenu = String(localized: "Obfuskoder CLI Help")
+    static let cliHelpWindowTitle = String(localized: "Obfuskoder CLI Help")
+    static let cliHelpIntro = String(localized: "Obfuskoder includes `obfuskode`, a command-line version of the encoder, for scripts and pipelines.")
     static let cliHelpInstall = String(localized: "Install it with Obfuskoder ▸ Install Command Line Tool…, then run it from Terminal:")
-    static let cliHelpOutro = String(localized: "The obfuscated snippet is written to standard output. For all options, run obfuskode --help.")
+    static let cliHelpOutro = String(localized: "The obfuscated snippet is written to standard output. For all options, run `obfuskode --help`.")
 
     // Helpers
     static func hintAccessibilityLabel(for field: String) -> String {

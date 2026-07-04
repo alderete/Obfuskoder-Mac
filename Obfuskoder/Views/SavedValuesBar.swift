@@ -10,6 +10,8 @@ struct SavedValuesBar: View {
 
     var body: some View {
         HStack {
+            // Combo (split) button: clicking the label opens Manage Saved
+            // Values; the divided indicator section opens the full menu.
             Menu(UIStrings.savedValues) {
                 Button(UIStrings.saveCurrentValues) { showSaveSheet = true }
                 if !store.presets.isEmpty {
@@ -20,10 +22,15 @@ struct SavedValuesBar: View {
                     Divider()
                     Button(UIStrings.manageSavedValues) { showManageSheet = true }
                 }
+            } primaryAction: {
+                showManageSheet = true
             }
-            .menuStyle(.borderlessButton)
             .fixedSize()
 
+            Spacer()
+
+            // Deliberately not accent-tinted: clearing is a secondary action;
+            // Copy is the pane's one prominent button (COLOR-2).
             Button(UIStrings.clearForm) {
                 NotificationCenter.default.post(name: .clearForm, object: nil)
             }

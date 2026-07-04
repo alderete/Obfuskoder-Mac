@@ -7,7 +7,7 @@ struct ManagePresetsSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(UIStrings.manageSavedValues).font(.headline)
+            Text(UIStrings.manageSavedValues).font(.appHeadline)
             List {
                 ForEach(store.presets) { preset in
                     PresetRow(store: store, preset: preset)

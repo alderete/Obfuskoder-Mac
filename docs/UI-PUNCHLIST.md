@@ -117,61 +117,219 @@ needed before building · (no tag) = polish/enhancement.
 
 ## 4. Form layout consistency (Basic ↔ Advanced)
 
-- [ ] **FORM-1** — Unify field-label style across modes (Basic is plain, Advanced
-      is bold). Target: bold, on top, both modes. *(§2)* **Details:**
-- [ ] **FORM-2** — Consistent left-edge spacing/alignment of form elements between
-      Basic and Advanced. *(§2)* **Details:**
-- [ ] **FORM-3** — Advanced HTML editor shows a scrollbar immediately; it should
-      only appear when content overflows. *(§2)* **Details:**
-- [ ] **FORM-4** — Reposition the Saved values menu and Clear Form button (current
-      placement is poor). *(§2)* **Details:**
-- [ ] **FORM-5** — Hint popover (clicked info icon) isn't sized for the text and
-      truncates longer hints; size it to fit. *(§5)* **Details:**
+- [x] **FORM-1** — Unify field-label style across modes (Basic is plain, Advanced
+      is bold). Target: bold, on top, both modes. *(§2)*
+      **Fixed 2026-07-01** (with FORM-2, one restructure): `BasicFormView`
+      rebuilt on AdvancedFormView's exact pattern — `.headline` label with the
+      field's hint icon beside it, control underneath. Side-by-side Grid layout
+      removed; fields now span the pane. Pane `minWidth` restored 370→320
+      (labels-on-top compresses gracefully; re-verified no clipping at divider
+      extremes in both modes). Manual-test §5.1 wording updated 2026-07-01 to
+      match (hint icons sit beside the label, per MA sign-off).
+      **Addendum 2026-07-01:** all heading labels bumped 13pt→15pt bold via a
+      shared `Font.appHeadline` (`Views/Typography.swift`); covers the four
+      form/pane headings plus both sheet titles. Basic-form field text also
+      bumped to 15pt regular (`NSFont.appFieldFont`). Both derive from the
+      `.title3` text style — never fixed point sizes — so they scale with the
+      user's system text-size setting. Advanced editor, Settings field, and
+      body/caption sizes unchanged.
+- [x] **FORM-2** — Consistent left-edge spacing/alignment of form elements between
+      Basic and Advanced. *(§2)*
+      **Fixed 2026-07-01** by the FORM-1 restructure. Verified via AX: every
+      element in both modes shares the same leading x (labels, fields, editor,
+      Saved values, Clear Form). Screenshots eyeballed in both modes.
+- [x] **FORM-3** — Advanced HTML editor shows a scrollbar immediately; it should
+      only appear when content overflows. *(§2)*
+      **Fixed 2026-07-01:** `scroll.autohidesScrollers = true` in
+      `MacTextEditor.makeNSView`. Verified by screenshot: empty editor shows no
+      scroller; it appears only when content overflows.
+- [x] **FORM-4** — Reposition the Saved values menu and Clear Form button (current
+      placement is poor). *(§2)*
+      **Fixed 2026-07-01** per MA's spec (two small changes, no toolbar revamp):
+      (1) Clear Form right-aligned in the footer bar, Saved Values stays left
+      (`Spacer()` in `SavedValuesBar`). (2) Saved Values converted from a
+      borderless text menu to a standard **pull-down button** (bordered, menu
+      indicator at trailing edge — SwiftUI `Menu`'s default macOS style; the
+      old code opted out via `.menuStyle(.borderlessButton)`), retitled
+      "Saved Values" (title case). Test plan §10 label references updated.
+      **Addendum:** upgraded to a **combo (split) button** per MA — hairline
+      divider between label and indicator (`Menu(_:content:primaryAction:)` /
+      NSComboButton style). Split semantics: clicking the label = Manage Saved
+      Values… (primary action, per MA); the indicator section opens the menu.
+      Verified by screenshot + live click test (label click opens the Manage
+      sheet).
+- [x] **FORM-5** — Hint popover (clicked info icon) isn't sized for the text and
+      truncates longer hints; size it to fit. *(§5)*
+      **Fixed 2026-07-01:** the popover measured the Text at single-line ideal
+      size, so `maxWidth` clamped width but kept one-line height. Now fixed
+      256pt content width + `fixedSize(horizontal: false, vertical: true)` in
+      `FieldHint.swift` so height is measured for the wrapped text. Verified by
+      screenshot with the longest hint (Link text, 3 lines, no clipping).
+      Also updated manual-test §5.1 wording for the FORM-1 hint-icon move
+      (beside the label, not at the field's trailing edge).
 
 ## 5. Color & branding
 
-- [ ] **COLOR-1** — Use the branding color for the selected segment of the mode
-      picker. *(§2)* **Details:**
-- [ ] **COLOR-2** — Use the branding color for the Clear Form and Copy buttons.
-      *(§2)* **Details:**
-- [ ] **COLOR-3** — "Copied" feedback should use the accent color and animate
-      more. *(§8)* **Details:**
-- [ ] **COLOR-4** — Dark mode: text-selection color is light gray and makes
-      selected white text hard to read. *(§14)* **Details:**
-- [ ] **COLOR-5** — CLI Help examples: selection highlight is hard to see; needs
+- [x] **COLOR-1** — Use the branding color for the selected segment of the mode
+      picker. *(§2)*
+      **Fixed 2026-07-01:** neither SwiftUI's segmented Picker nor
+      NSSegmentedControl honors an accent for the selected segment on modern
+      macOS (`selectedSegmentBezelColor` tried and ignored), so the picker is
+      now a custom SwiftUI capsule control (`Views/ModePicker.swift`): accent
+      fill + white label on the selected segment, animated selection slide.
+      **Geometry cleanup (MA feedback):** dropped the control's own gray track —
+      three nested curves (system glass capsule / track / chip) could never sit
+      concentric because the toolbar chrome pads horizontally more than
+      vertically. Now chip-in-glass (macOS 26 pattern): taller chip whose cap
+      radius tracks the system capsule concentrically. Second pass (MA still
+      saw uneven gaps): pixel-measured the rendering — chip cap center sat 4px
+      left of the glass cap center (gaps 6.25/4.5/2.25px at flat/45°/far
+      point). +2pt horizontal inset per side fixed it; re-measured
+      6.25/7.25/6.25px (±1px ≈ antialiasing + the glass's continuous
+      curvature vs. our circular arc).
+      A11y hand-built (group labeled "Input mode", labeled segments with
+      selected trait — wired identically to controls that passed VO tests; SE
+      can't read SwiftUI labels, so a quick VO re-listen of 16.3/16.1 is
+      advised). Verified: segment click switches modes, menu ⌘1/⌘2 syncs back,
+      accent renders (screenshot).
+- [x] **COLOR-2** — Use the branding color for the Clear Form and Copy buttons.
+      *(§2)*
+      **Fixed 2026-07-01, revised 2026-07-02:** Copy is `.borderedProminent`
+      (sage fill from the AccentColor asset, white label, gray when disabled).
+      Clear Form deliberately keeps the standard bordered style — MA: clearing
+      is a secondary function; only Copy gets the accent.
+- [x] **COLOR-3** — "Copied" feedback should use the accent color and animate
+      more. *(§8)*
+      **Fixed 2026-07-02:** "Copied" now renders in the accent color, and the
+      Copy button does a one-shot spring pulse (scale 1.0→1.07→1.0, 0.18s) on
+      every copy — driven by a `copyCount` trigger in AppModel so repeat copies
+      inside the 5s feedback window also pulse. Verified: copy via button puts
+      the snippet on the clipboard (0 `@`s), Copied appears in sage.
+      (Most Mac-assed alternative — symbol morph to a checkmark via
+      `.contentTransition(.symbolEffect(.replace))` — noted but conflicts with
+      test 8.2's "button label does not change".)
+- [x] **COLOR-4** — Dark mode: text-selection color is light gray and makes
+      selected white text hard to read. *(§14)*
+      **Fixed 2026-07-02:** pixel-measured the dark-mode selection at #626A5D —
+      the system's derivation of the sage accent collapses to muddy gray. New
+      dynamic `NSColor.appTextSelection` (`Views/AppColors.swift`): true accent
+      in dark (#768E65 measured behind white text), pale accent tint in light
+      (#D8DED4 measured behind black text). Applied to the Basic fields' field
+      editor (`NoSubstitutionTextField`) and the Advanced editor. Verified by
+      pixel sampling in both appearances; MA confirmed 2026-07-03.
+- [x] **COLOR-5** — CLI Help examples: selection highlight is hard to see; needs
       more contrast or use the system highlight color instead of the accent.
-      *(§18)* **Details:**
+      *(§18)*
+      **Fixed 2026-07-03:** two causes. (1) SwiftUI `.textSelection` offers no
+      highlight-color control — examples are now AppKit-backed selectable
+      labels (`SelectableCode` in `CLIHelpView.swift`) using the shared
+      `appTextSelection` color from COLOR-4. (2) The pale light-mode tint was
+      invisible on the gray `.quinary` box (#D1D8CC on #D9D9D9, measured) — the
+      example block now sits on the white "live" surface with quaternary
+      stroke, matching the snippet box (WIN-4 language). Verified by pixel
+      sampling + screenshot; examples remain selectable (test §18).
 
 ## 6. Controls & affordances
 
-- [ ] **CTRL-1** — Add the Copy SF Symbol (two rectangles) to the Copy button.
-      *(§8)* **Details:**
-- [ ] **CTRL-2** — Replace the distracting "Preview is non-interactive" animation
+- [x] **CTRL-1** — Add the Copy SF Symbol (two rectangles) to the Copy button.
+      *(§8)*
+      **Fixed 2026-07-02** (with COLOR-3): `doc.on.doc` added via
+      `Button(_:systemImage:)`. Verified by screenshot.
+- [x] **CTRL-2** — Replace the distracting "Preview is non-interactive" animation
       with a brief toast above the click point; no resizing of UI elements. *(§9)*
-      **Details:**
-- [ ] **CTRL-3** — View ▸ Show/Hide Decoded Source menu title should change
-      dynamically to reflect the current disclosure state. *(§8)* **Details:**
-- [ ] **CTRL-4** — The encoding-delay value should be more visible / animated — a
-      Mac-native treatment, not the current generic one. *(§7)* **Details:**
-- [ ] **CTRL-5** — Settings: left-align the fallback-message text (right-align is
-      an iOS-ism). *(§7)* **Details:**
-- [ ] **CTRL-6** — No-JavaScript field: when blank, show the default message as
-      ghost/placeholder text. *(§13)* **Details:**
-- [ ] **CTRL-7 ❓** — Should Settings have Cancel/Save buttons that close the
-      window? *(§7)* **Details:**
+      **Fixed 2026-07-03:** toast is rendered *in-page* (HUD-style pill in the
+      preview's wrapper HTML) so it anchors to the exact click coordinates and
+      never touches SwiftUI layout; auto-hides after ~1.8s; clamps to the
+      viewport (shows below the point when clicked near the top). The old
+      layout-shifting SwiftUI hint row is removed; the VoiceOver announcement
+      (A11Y-2) is retained. Test plan 9.3 updated. Verified by click +
+      screenshot.
+- [x] **CTRL-3** — View ▸ Show/Hide Decoded Source menu title should change
+      dynamically to reflect the current disclosure state. *(§8)*
+      **Fixed 2026-07-03:** menu title is now conditional ("Show Decoded
+      Source" ↔ "Hide Decoded Source", two String Catalog entries). Verified
+      live in both states (note: System Events reads stale menu titles unless
+      the menu is physically opened). Test plan 8.5/12.3 updated.
+- [x] **CTRL-4** — The encoding-delay value should be more visible / animated — a
+      Mac-native treatment, not the current generic one. *(§7)*
+      **Fixed 2026-07-03** per MA's spec: separate value readout removed;
+      custom slider (`Views/DelaySlider.swift`) with a large Liquid Glass knob
+      shaped like home plate (five-sided, point aimed at the tick marks), the
+      live value inside the knob (bold 12pt callout, no "s" suffix — the unit
+      stays on the range labels; MA refinement). Accent-filled track, ticks at 0.1s
+      increments, snap to 0.05. `glassEffect` gated to macOS 26 with an
+      ultraThinMaterial fallback (target is 14.0). Focus rings the knob, not
+      the row (`focusEffectDisabled` + knob stroke); keyboard steps via
+      `onMoveCommand` (onKeyPress is eaten by the Form's scroll view); drag
+      grabs focus like NSSlider; a11y via `accessibilityAdjustableAction`
+      (needs a VO listen at next a11y pass). Verified: click-to-jump, drag,
+      and arrow keys all move the value (0.35→0.40→0.45→0.40 measured in
+      defaults); value updates live inside the knob (screenshots at 0.25/0.55/
+      0.80). One unexplained 0.25→0.55 jump during automation never
+      reproduced — watch for phantom value changes in manual use.
+- [x] **CTRL-5** — Settings: left-align the fallback-message text (right-align is
+      an iOS-ism). *(§7)*
+      **Closed 2026-07-03: already fixed by FIX-2** — swapping the SwiftUI
+      `TextField` for `MacTextField` gave the field NSTextField's natural
+      (left) alignment. Confirmed by screenshot.
+- [x] **CTRL-6** — No-JavaScript field: when blank, show the default message as
+      ghost/placeholder text. *(§13)*
+      **Fixed 2026-07-03:** default message as `placeholder` on the Settings
+      field, and `ContentView.syncSettings` treats a blank/whitespace value as
+      "use the default" so the encoded snippet gets the default fallback too.
+      Verified: ghost text shows in the blanked field; snippet contains the
+      default message with the setting blank.
+- [x] **CTRL-7** — ~~Should Settings have Cancel/Save buttons that close the
+      window?~~ **Declined 2026-07-03 (MA):** live-apply + ⌘W is the macOS
+      Settings convention; Save/Cancel would require pending-state handling
+      and diverge from platform behavior. No change.
 
 ## 7. Menus, About & Help
 
-- [ ] **MENU-1** — About box should include a tagline, an attribution line, and a
-      link to the project/product page (GitHub for now). *(§12)* **Details:**
-- [ ] **MENU-2** — Build system should update the version and build number
-      automatically. *(§12)* **Details:**
-- [ ] **MENU-3** — Trim the Window menu of unnecessary items; don't list the CLI
-      window unless it's actually open. *(§12)* **Details:**
-- [ ] **MENU-4** — Add Help content for Obfuskoder itself, parallel to the CLI
-      help. *(§12)* **Details:**
-- [ ] **MENU-5** — CLI help should be titled "Obfuskoder CLI Help" and use a
-      monospace font for commands in the help text. *(§12)* **Details:**
+- [x] **MENU-1** — About box should include a tagline, an attribution line, and a
+      link to the project/product page (GitHub for now). *(§12)*
+      **Fixed 2026-07-03:** standard About panel with custom credits
+      (`AboutPanel.swift` via `orderFrontStandardAboutPanel(options:)`): MA's
+      tagline, "Inspired by Enkoder.", and a clickable
+      github.com/alderete/Obfuskoder-Mac link (URL in
+      `AppConfig.projectPageURL`). Verified by screenshot.
+- [x] **MENU-2** — Build system should update the version and build number
+      automatically. *(§12)*
+      **Fixed 2026-07-03:** marketing version stays hand-set
+      (`MARKETING_VERSION`); build number = git commit count. Implementation:
+      app converted from generated Info.plist to a template
+      (`Config/Info.plist`, outside the synchronized group); a "Stamp Build
+      Number" script phase copies it to `$(DERIVED_FILE_DIR)/Info-stamped.plist`
+      (declared input/output, `alwaysOutOfDate`) and sets `CFBundleVersion` to
+      `git rev-list --count HEAD`; `INFOPLIST_FILE` points at the stamped copy
+      so plist processing and codesigning are dependency-ordered after the
+      stamp. `ENABLE_USER_SCRIPT_SANDBOXING = NO` (script needs git).
+      ⚠️ Naive in-place stamping of the processed plist breaks incremental
+      code signatures — do not "simplify" back to that. Verified: clean +
+      incremental builds show CFBundleVersion=62 (= commit count), valid
+      signature, plist keys identical to the previously generated one;
+      `obfuskode --version` still reports the marketing version.
+- [x] **MENU-3** — Trim the Window menu of unnecessary items; don't list the CLI
+      window unless it's actually open. *(§12)*
+      **Fixed 2026-07-03:** `.commandsRemoved()` on the cli-help Window scene —
+      no standing Window-menu entry (Help ▸ Obfuskoder CLI Help is the way in).
+      Verified: Window menu now contains only system-standard items.
+- [x] **MENU-4** — Add Help content for Obfuskoder itself, parallel to the CLI
+      help. *(§12)*
+      **Fixed 2026-07-03** per MA (compact window, content from spec/README):
+      `ObfuskoderHelpView` — seven short paragraphs (what it does, Basic vs
+      Advanced, live preview, the no-`@` guarantee, Saved Values, privacy,
+      CLI pointer) with inline bold/code markdown. Help ▸ Obfuskoder Help
+      (⌘?, replaces the default help-book item) opens it; ⌘W closes; no
+      Window-menu entry. Needed `fixedSize(horizontal: false, vertical: true)`
+      to avoid paragraph truncation (same trap as FORM-5). Test plan §18 CLI
+      help menu name updated. Verified by screenshot + close test.
+- [x] **MENU-5** — CLI help should be titled "Obfuskoder CLI Help" and use a
+      monospace font for commands in the help text. *(§12)*
+      **Fixed 2026-07-03:** Help-menu item and window title both "Obfuskoder
+      CLI Help"; inline commands (`obfuskode`, `obfuskode --help`) marked as
+      markdown inline code in the String Catalog entries and rendered
+      monospaced via `AttributedString(markdown:)`. Verified by screenshot.
 
 ## 8. Mac-native custom UI (larger effort — do once layout is stable)
 

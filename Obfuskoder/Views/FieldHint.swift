@@ -18,10 +18,14 @@ struct FieldHint: View {
         .accessibilityLabel(UIStrings.hintAccessibilityLabel(for: fieldLabel))
         .accessibilityHint(hint)
         .popover(isPresented: $showPopover, arrowEdge: .trailing) {
+            // Fixed width + vertical fixedSize so the popover's height is
+            // measured for the wrapped text — maxWidth alone clips long hints
+            // to the single-line height the popover measured first (FORM-5).
             Text(hint)
                 .font(.callout)
+                .frame(width: 256, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(12)
-                .frame(maxWidth: 280)
         }
     }
 }

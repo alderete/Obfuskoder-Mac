@@ -15,22 +15,17 @@ struct ContentView: View {
         @Bindable var model = model
         HSplitView {
             InputPane(model: model)
-                // Basic form's content needs ~355pt (label column + 220pt field
-                // + hint button + padding); below that the trailing hint buttons
-                // slide under the divider (WIN-1).
-                .frame(minWidth: 370)
+                // With labels above the fields, content compresses gracefully;
+                // 320 keeps fields ≥288pt wide. If the form layout changes,
+                // re-verify with a divider drag that nothing clips (WIN-1).
+                .frame(minWidth: 320)
             ResultPane(model: model)
                 .frame(minWidth: 320)
         }
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Picker("", selection: $model.form.mode) {
-                    Text(UIStrings.basic).tag(FormMode.basic)
-                    Text(UIStrings.advanced).tag(FormMode.advanced)
-                }
-                .pickerStyle(.segmented)
-                .fixedSize()
-                .accessibilityLabel(Text(UIStrings.modeLabel))
+                ModePicker(mode: $model.form.mode)
+                    .fixedSize()
             }
         }
         .onAppear { syncSettings() }
@@ -50,7 +45,9 @@ struct ContentView: View {
 
     private func syncSettings() {
         model.debounceSeconds = debounce
-        model.fallbackMessage = fallback
+        // Blank setting means "use the default message" (CTRL-6).
+        model.fallbackMessage = fallback.trimmingCharacters(in: .whitespaces).isEmpty
+            ? AppConfig.defaultFallbackMessage : fallback
         model.scheduleEncode()
     }
 }

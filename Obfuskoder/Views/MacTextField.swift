@@ -6,12 +6,14 @@ struct MacTextField: NSViewRepresentable {
     @Binding var text: String
     var placeholder: String = ""
     var formatter: Formatter?
+    var font: NSFont?
     var onChange: () -> Void = {}
 
     func makeNSView(context: Context) -> NSTextField {
         let field = NoSubstitutionTextField()
         field.placeholderString = placeholder
         field.formatter = formatter
+        if let font { field.font = font }
         field.delegate = context.coordinator
         field.isBordered = true
         field.bezelStyle = .roundedBezel
@@ -45,6 +47,7 @@ final class NoSubstitutionTextField: NSTextField {
     override func becomeFirstResponder() -> Bool {
         let ok = super.becomeFirstResponder()
         if let editor = currentEditor() as? NSTextView {
+            editor.selectedTextAttributes = [.backgroundColor: NSColor.appTextSelection]
             editor.isAutomaticQuoteSubstitutionEnabled = false
             editor.isAutomaticDashSubstitutionEnabled = false
             editor.isAutomaticTextReplacementEnabled = false

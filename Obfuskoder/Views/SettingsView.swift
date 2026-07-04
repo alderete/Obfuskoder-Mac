@@ -8,16 +8,20 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section {
-                Slider(value: $debounce,
-                       in: AppConfig.minDebounceSeconds...AppConfig.maxDebounceSeconds,
-                       step: 0.05) {
-                    Text(UIStrings.settingsEncodingDelay)
-                } minimumValueLabel: { Text("0.1s") } maximumValueLabel: { Text("1.0s") }
-                Text(String(format: "%.2fs", debounce)).foregroundStyle(.secondary).font(.caption)
+            Section(UIStrings.settingsEncodingDelay) {
+                HStack(spacing: 12) {
+                    Text("0.1s").font(.caption).foregroundStyle(.secondary)
+                    DelaySlider(value: $debounce)
+                    Text("1.0s").font(.caption).foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 6)
             }
             Section(UIStrings.settingsFallbackMessage) {
-                MacTextField(text: $fallback, formatter: NoAtSignFormatter())
+                // Ghost text: a blank setting falls back to the default
+                // message (applied in ContentView.syncSettings) — CTRL-6.
+                MacTextField(text: $fallback,
+                             placeholder: AppConfig.defaultFallbackMessage,
+                             formatter: NoAtSignFormatter())
                     // Safety net only: the formatter blocks typed/pasted "@";
                     // this covers values that reach defaults from outside the UI.
                     .onChange(of: fallback) { fallback = fallback.replacingOccurrences(of: "@", with: "") }

@@ -12,7 +12,7 @@ struct SaveValuesSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(UIStrings.presetNamePrompt).font(.headline)
+            Text(UIStrings.presetNamePrompt).font(.appHeadline)
             TextField("", text: $name)
                 .frame(width: 280)
                 .onChange(of: name) { duplicate = false; saveError = nil }

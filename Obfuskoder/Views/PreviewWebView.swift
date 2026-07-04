@@ -30,6 +30,11 @@ struct PreviewWebView: NSViewRepresentable {
         context.coordinator.parent = self
         guard context.coordinator.lastKey != reloadKey else { return }
         context.coordinator.lastKey = reloadKey
+        // The "non-interactive" toast is rendered in-page so it can anchor to
+        // the exact click point without moving any SwiftUI layout (CTRL-2).
+        let toastMessage = UIStrings.previewNonInteractive
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
         let document = """
         <!doctype html><html><head><meta charset="utf-8">
         <meta http-equiv="Content-Security-Policy" content="default-src 'none'; \
@@ -38,8 +43,25 @@ struct PreviewWebView: NSViewRepresentable {
         base-uri 'none'; form-action 'none'">
         <style>html,body{background:color-mix(in srgb, Canvas 95%, CanvasText 5%);color:CanvasText}\
         body{font:13px -apple-system,system-ui,sans-serif;margin:8px;\
-        -webkit-user-select:none;user-select:none}</style>
-        </head><body>\(html)</body></html>
+        -webkit-user-select:none;user-select:none}\
+        #__obfsk_toast{position:fixed;opacity:0;transition:opacity .15s ease;\
+        pointer-events:none;background:rgba(40,40,40,.92);color:#fff;\
+        padding:4px 10px;border-radius:6px;font:11px -apple-system,sans-serif;\
+        white-space:nowrap;z-index:2147483647}</style>
+        </head><body>\(html)\
+        <div id="__obfsk_toast"></div>\
+        <script>(function(){\
+        var t=document.getElementById('__obfsk_toast'),h;\
+        document.addEventListener('click',function(e){\
+        if(!e.target.closest('a'))return;\
+        t.textContent="\(toastMessage)";\
+        t.style.left='0px';t.style.top='0px';t.style.opacity='1';\
+        var r=t.getBoundingClientRect();\
+        var x=Math.min(Math.max(4,e.clientX-r.width/2),window.innerWidth-r.width-4);\
+        var y=e.clientY-r.height-8;if(y<4)y=e.clientY+12;\
+        t.style.left=x+'px';t.style.top=y+'px';\
+        clearTimeout(h);h=setTimeout(function(){t.style.opacity='0'},1800);\
+        },true);})();</script></body></html>
         """
         webView.loadHTMLString(document, baseURL: nil)
     }

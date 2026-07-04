@@ -4,8 +4,6 @@ import ObfuskoderKit
 
 struct ResultPane: View {
     @Bindable var model: AppModel
-    @State private var showPreviewHint = false
-    @State private var previewHintTask: Task<Void, Never>?
     @State private var previewContentHeight: CGFloat?
 
     var body: some View {
@@ -16,7 +14,7 @@ struct ResultPane: View {
             VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text(UIStrings.snippetHeading).font(.headline)
+                        Text(UIStrings.snippetHeading).font(.appHeadline)
                         Spacer()
                         Text(UIStrings.updatesAsYouType).font(.caption).foregroundStyle(.tertiary)
                     }
@@ -28,17 +26,21 @@ struct ResultPane: View {
                         if model.showCopiedFeedback {
                             Text(UIStrings.copied)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.accentColor)
                                 .transition(.opacity)
                         }
-                        Button(UIStrings.copy) { model.copySnippet() }
+                        Button(UIStrings.copy, systemImage: "doc.on.doc") { model.copySnippet() }
+                            .buttonStyle(.borderedProminent)
                             .disabled(model.snippetText == nil)
+                            .phaseAnimator([1.0, 1.07], trigger: model.copyCount) { view, scale in
+                                view.scaleEffect(scale)
+                            } animation: { _ in .spring(duration: 0.18) }
                     }
                     .animation(.default, value: model.showCopiedFeedback)
                 }
                 .frame(height: geo.size.height * 0.6, alignment: .top)
 
-                Text(UIStrings.previewHeading).font(.headline)
+                Text(UIStrings.previewHeading).font(.appHeadline)
                 // While decoded source is open, the preview squeezes to its
                 // rendered content's height (capped so a tall Advanced-mode
                 // preview can't starve the decoded source) — WIN-3.
@@ -47,7 +49,7 @@ struct ResultPane: View {
                     if let html = model.snippetText {
                         PreviewWebView(html: html,
                                        reloadKey: model.decodedSource ?? "",
-                                       onInteractionAttempt: flashPreviewHint,
+                                       onInteractionAttempt: announcePreviewIsNonInteractive,
                                        onContentHeight: { previewContentHeight = $0 })
                     } else {
                         emptyState(UIStrings.emptyPreview)
@@ -57,14 +59,6 @@ struct ResultPane: View {
                 .frame(minHeight: pinnedHeight == nil ? 64 : nil)
                 .background(.quinary, in: RoundedRectangle(cornerRadius: 6))
                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
-
-                if showPreviewHint {
-                    Label(UIStrings.previewNonInteractive, systemImage: "hand.raised")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .transition(.opacity)
-                        .accessibilityAddTraits(.isStaticText)
-                }
 
                 if model.decodedSource != nil {
                     DisclosureGroup(UIStrings.showDecodedSource, isExpanded: $model.showDecodedSource) {
@@ -129,17 +123,11 @@ struct ResultPane: View {
         return min(contentHeight, paneHeight * 0.25)
     }
 
-    private func flashPreviewHint() {
-        // The visual hint is invisible to VoiceOver; announce it the same way
-        // copySnippet() announces "Copied" (passed test 16.4).
+    private func announcePreviewIsNonInteractive() {
+        // The in-page toast (CTRL-2) is invisible to VoiceOver; announce the
+        // same way copySnippet() announces "Copied" (passed test 16.4).
         NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
                              userInfo: [.announcement: UIStrings.previewNonInteractive])
-        withAnimation { showPreviewHint = true }
-        previewHintTask?.cancel()
-        previewHintTask = Task {
-            try? await Task.sleep(for: .seconds(3))
-            if !Task.isCancelled { withAnimation { showPreviewHint = false } }
-        }
     }
 
 }
