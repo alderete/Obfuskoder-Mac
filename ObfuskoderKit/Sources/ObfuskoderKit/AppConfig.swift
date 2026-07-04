@@ -7,4 +7,5 @@ public enum AppConfig {
     public static let defaultFallbackMessage = "Enable JavaScript to view email"
     public static let accentHex = "5E7C50"
     public static let maxSelfCheckAttempts = 8
+    public static let projectPageURL = "https://github.com/alderete/Obfuskoder-Mac"
 }

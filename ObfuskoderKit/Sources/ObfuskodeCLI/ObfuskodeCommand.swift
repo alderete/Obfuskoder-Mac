@@ -30,7 +30,7 @@ public struct ObfuskodeCommand: ParsableCommand {
     public var email: String?
 
     @Option(name: [.customShort("t"), .long],
-            help: "Basic mode: the visible, clickable link text (required with --email).")
+            help: "Basic mode: the visible, clickable link text (defaults to the email address).")
     public var linkText: String?
 
     @Option(name: .long,
@@ -60,9 +60,6 @@ public struct ObfuskodeCommand: ParsableCommand {
             if linkText != nil { throw ValidationError("--link-text requires --email.") }
             if linkTitle != nil { throw ValidationError("--link-title requires --email.") }
             if subject != nil { throw ValidationError("--subject requires --email.") }
-        }
-        if email != nil && linkText == nil {
-            throw ValidationError("--email requires --link-text.")
         }
     }
 

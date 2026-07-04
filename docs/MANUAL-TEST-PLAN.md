@@ -37,6 +37,7 @@ light/dark switch.
 Use `alderete@aldosoft.com` as the email throughout.
 
 - [ ] 3.1 Enter **Email** + **Link text** (e.g. "Email me") → after ~0.4s a snippet appears in the **Obfuskoded snippet** box and the **Preview** shows the link.
+- [ ] 3.1a Enter **Email only** → the Link text field shows the email as **ghost text** (live-updating as you type the email) and a snippet **is generated** using the email as the link text. Tab into Link text and press **Tab** → the field **fills in** with the email, focus stays in the field with the insertion point at the end; a second Tab moves on.
 - [ ] 3.2 The snippet contains **no `@`** and **no readable email** (it's a long number array). Eyeball it.
 - [ ] 3.3 Add a **Link title** (e.g. "Contact Aldosoft") → in the Preview, **hover the link** → the title appears as a tooltip.
 - [ ] 3.4 Add a **Subject** (e.g. "Hello there") → open **▸ Show decoded source** → the decoded `<a>` contains `?subject=Hello%20there` (space percent-encoded).
@@ -52,15 +53,16 @@ For each, Expected = **no snippet, empty/placeholder result, Copy disabled** (no
 - [ ] 4.3 Email = `foo@bar` (no domain dot).
 - [ ] 4.4 Email = `a b@example.com` (space).
 - [ ] 4.5 Email = `two@@example.com`.
-- [ ] 4.6 Valid email, **Link text empty**.
-- [ ] 4.7 Valid email, Link text = `"   "` (spaces only).
+- [ ] 4.6 Valid email, **Link text empty** → **exception:** a snippet IS generated (link text defaults to the email; see 3.1a).
+- [ ] 4.7 Valid email, Link text = `"   "` (spaces only) → same as 4.6 (whitespace counts as empty).
 - [ ] 4.8 Fix the email to a valid one with valid link text → snippet appears (recovers cleanly).
 
 ## 5. Field hints
 
 For **each** Basic field (Email, Link text, Link title, Subject):
 
-- [ ] 5.1 An **`info.circle`** icon sits at the trailing edge of the field.
+- [ ] 5.1 An **`info.circle`** icon sits beside the field's label (same
+      pattern as the Advanced editor's hint).
 - [ ] 5.2 **Hover** the icon → a help-tag tooltip shows the hint.
 - [ ] 5.3 **Click** the icon → a popover shows the same hint; click away to dismiss.
 - [ ] 5.4 Hint text matches the field (e.g. Email = "The email address to be obfuskoded.").
@@ -86,24 +88,26 @@ For **each** Basic field (Email, Link text, Link title, Subject):
 - [ ] 8.2 Click **Copy** → **"Copied"** appears just left of the button for ~5s; the **button label does not change**. Paste into TextEdit → you get the full snippet.
 - [ ] 8.3 Use **Edit ▸ Copy Snippet (⇧⌘C)** → same "Copied" feedback; paste verifies the snippet is on the clipboard.
 - [ ] 8.4 Clear the form so there's no snippet → **Copy button is disabled** and the **Copy Snippet** menu item is disabled.
-- [ ] 8.5 **▸ Show decoded source** expands to show the decoded HTML; it equals your input. Collapse it. The **View ▸ Show/Hide Decoded Source** menu item toggles the same disclosure.
+- [ ] 8.5 **▸ Show decoded source** expands to show the decoded HTML; it equals your input. Collapse it. The **View ▸ Show/Hide Decoded Source** menu item toggles the same disclosure; its title reflects the current state (Show ↔ Hide).
 
 ## 9. Preview behavior
 
 - [ ] 9.1 The Preview **renders** the decoded link (not blank).
 - [ ] 9.2 Hovering a link shows the **title tooltip** (when a title is set) and a pointing-hand cursor — it *looks* interactive on purpose.
-- [ ] 9.3 **Click the link** → it does **not** open Mail; a transient **"Preview is non-interactive"** hint appears just below the preview (~3s).
+- [ ] 9.3 **Click the link** → it does **not** open Mail; a transient **"Preview is non-interactive"** toast appears at the click point (~2s); no other UI moves or resizes.
 - [ ] 9.4 You **cannot select** the preview text.
 
 ## 10. Saved values (presets)
 
-- [ ] 10.1 With a filled Basic form, **Saved values ▾ → Save Current Values…** → a sheet prompts for a name; enter `Personal` → Save. The menu now lists **Personal**.
-- [ ] 10.2 Change the form, then **Saved values ▾ → Personal** → the form is **restored** to the saved values (mode + fields).
+- [ ] 10.1 With a filled Basic form, **Saved Values ▾ → Save Current Values…** → a sheet prompts for a name; enter `Personal` → Save. The menu now lists **Personal**.
+- [ ] 10.2 Change the form, then **Saved Values ▾ → Personal** → the form is **restored** to the saved values (mode + fields).
 - [ ] 10.3 Save again with the name `Personal` (duplicate) → the sheet shows **"A saved set with that name already exists"** and offers **Replace** → Replace updates it.
 - [ ] 10.4 Switch to Advanced, enter HTML, **File menu ▸ Save Current Values… (⌘S)** → the name sheet appears; save as `HTML snippet`. Recall it → mode switches to Advanced with that HTML.
-- [ ] 10.5 **Saved values ▾ → Manage Saved Values…** → rename an entry (edit text, press Return), delete one (trash), and **drag to reorder** → the menu reflects all changes.
-- [ ] 10.6 Delete all presets → the **Saved values** menu shows only **Save Current Values…** (no list, no Manage…).
-- [ ] 10.7 Save a preset, **Quit and relaunch** → the preset is **still there** (persisted).
+- [ ] 10.5 **Saved Values ▾ → Manage Saved Values…** → rename an entry (edit the name in place, press Return), delete one (trash appears on hover; also in the row's context menu), and **drag a row's gripper to reorder** — the lifted row follows the pointer and the others animate out of the way → the menu reflects all changes.
+- [ ] 10.6 Delete all presets → the **Saved Values** menu shows only **Save Current Values…** (no list, no Manage…).
+- [ ] 10.7 With more than 3 presets saved → the menu lists only the **first 3**, then **"{n} additional item(s)"** (singular/plural correct) which opens **Manage Saved Values** like the real item. With ≤3, no summary row.
+- [ ] 10.7a Rename or delete a preset in the Manage panel → the **Saved Values menu reflects it immediately**.
+- [ ] 10.8 Save a preset, **Quit and relaunch** → the preset is **still there** (persisted).
 
 ## 11. Clear Form + Undo
 
@@ -117,7 +121,7 @@ For **each** Basic field (Email, Link text, Link title, Subject):
 
 - [ ] 12.1 **Obfuskoder** menu: **About Obfuskoder**, **Settings… (⌘,)**, **Quit (⌘Q)** all work.
 - [ ] 12.2 **Edit** menu: standard **Cut/Copy/Paste/Select All** work inside the text fields; below the standard block there's a **separator**, then **Copy Snippet (⇧⌘C)** and **Clear Form (⌘K)** grouped together, then a **separator**.
-- [ ] 12.3 **View** menu: **Basic (⌘1)**, **Advanced (⌘2)**, **Show/Hide Decoded Source**.
+- [ ] 12.3 **View** menu: **Basic (⌘1)**, **Advanced (⌘2)**, **Show/Hide Decoded Source** (title changes with the disclosure state).
 - [ ] 12.4 A **Help** menu and standard **Window** menu are present.
 - [ ] 12.5 **(a11y)** Full keyboard operation: Tab moves between fields; you can reach and trigger every control and menu without the mouse.
 
@@ -178,7 +182,7 @@ Turn on VoiceOver (⌘F5).
 - [ ] **Exit codes:** `obfuskode` alone on a TTY prints usage and exits 64
       (does not hang); `obfuskode -e bad -t x` exits 65; success exits 0
       (`echo $?`).
-- [ ] **Help window:** Help ▸ Command-Line Tool Help opens the small window;
+- [ ] **Help window:** Help ▸ Obfuskoder CLI Help opens the small window;
       examples are selectable; ⌘W closes it.
 
 ---

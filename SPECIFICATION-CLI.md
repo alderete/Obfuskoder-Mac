@@ -115,7 +115,7 @@ Mode-selection rules:
   (exit 64) when both are given.
 - **CLI-5** `--link-text`, `--link-title`, and `--subject` are valid **only
   with `--email`** → usage error (exit 64) if any appears without it.
-- **CLI-6** `--email` **requires** `--link-text` → usage error (exit 64)
+- **CLI-6** *(revised 2026-07-04)* `--email` does **not** require `--link-text`; when omitted, the link text defaults to the email address
   when missing (the two required Basic fields, per §6.3 of the main spec).
 - **CLI-7** When neither `--email` nor `--html` is given: if **stdin is not a
   TTY** (piped or redirected; test with `isatty(STDIN_FILENO)`), read it as
@@ -133,7 +133,7 @@ Mode-selection rules:
 | Option         | Short | Value      | Default                              | Description                                                                 |
 |----------------|-------|------------|--------------------------------------|-----------------------------------------------------------------------------|
 | `--email`      | `-e`  | address    | —                                    | Basic mode. The email address to be obfuskoded. Validated per CLI-10.        |
-| `--link-text`  | `-t`  | text       | —                                    | Basic mode, required with `--email`. The visible, clickable link text.       |
+| `--link-text`  | `-t`  | text       | the `--email` value                  | Basic mode. The visible, clickable link text; defaults to the email address. |
 | `--link-title` |       | text       | (omitted)                            | Basic mode, optional. Becomes the `title=` attribute.                        |
 | `--subject`    |       | text       | (omitted)                            | Basic mode, optional. URL-encoded into the `mailto:` href as `?subject=`.    |
 | `--html`       |       | html       | —                                    | Advanced mode. Arbitrary HTML to obfuskode verbatim (after trim).            |
@@ -151,9 +151,9 @@ Validation mirrors the app's rules exactly — same code paths where possible:
   `EmailValidator` (the web edition's pattern `^[^\s@]+@[^\s@]+\.[^\s@]+$`).
   Invalid → data error (exit 65):
   `obfuskode: '<value>' is not a valid email address`.
-- **CLI-11** `--link-text` must be non-empty after trimming → data error
-  (exit 65): `obfuskode: the link text must not be empty`.
-  (A *missing* `--link-text` flag is a usage error, CLI-6; a *blank value* is
+- **CLI-11** *(revised 2026-07-04)* an omitted or blank-after-trim
+  `--link-text` is **not** an error: the link text falls back to the
+  `--email` value. (Historical: a missing flag was a usage error, CLI-6; a *blank value* was
   a data error.)
 - **CLI-12** `--fallback` must not contain the `@` character (ENC-3 makes
   such a snippet unverifiable — every encode attempt would fail) → data error
@@ -479,8 +479,8 @@ reaches it; the Xcode tool target is a three-line shim.
 **Package tests (automated, `swift test`):**
 
 - Parsing matrix: each usage-error rule CLI-4…CLI-7 (conflicts, companions
-  without `--email`, missing `--link-text`, bare TTY invocation), plus
-  defaults and short flags.
+  without `--email`, bare TTY invocation; `--email` alone parses — the link
+  text defaults to it), plus defaults and short flags.
 - Data validation: CLI-10…CLI-14 — each produces its exact §5.5 message and
   maps to exit 65.
 - Round-trip: for Basic and Advanced (inline + injected-stdin) runs, the

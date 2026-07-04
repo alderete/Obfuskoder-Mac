@@ -1,39 +1,48 @@
 import SwiftUI
 import ObfuskoderKit
 
+/// Basic-mode form. Field groups mirror AdvancedFormView's pattern exactly —
+/// bold label with its hint beside it, control underneath — so the two modes
+/// present one consistent layout (FORM-1/FORM-2).
 struct BasicFormView: View {
     @Bindable var model: AppModel
 
     var body: some View {
-        Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 8, verticalSpacing: 10) {
-            row(UIStrings.emailLabel, hint: UIStrings.emailHint,
-                text: $model.form.basic.email)
-            row(UIStrings.linkTextLabel, hint: UIStrings.linkTextHint,
-                text: $model.form.basic.linkText)
-            row(UIStrings.linkTitleLabel, hint: UIStrings.linkTitleHint,
-                text: $model.form.basic.linkTitle, optional: true)
-            row(UIStrings.subjectLabel, hint: UIStrings.subjectHint,
-                text: $model.form.basic.subject, optional: true)
+        VStack(alignment: .leading, spacing: 14) {
+            field(UIStrings.emailLabel, hint: UIStrings.emailHint,
+                  text: $model.form.basic.email)
+            // Empty link text defaults to the email address: shown as ghost
+            // text, accepted into the field with Tab, and used by the encoder.
+            field(UIStrings.linkTextLabel, hint: UIStrings.linkTextHint,
+                  text: $model.form.basic.linkText,
+                  placeholder: trimmedEmail,
+                  tabCompletion: { [model] in model.form.basic.email
+                      .trimmingCharacters(in: .whitespacesAndNewlines) })
+            field(UIStrings.linkTitleLabel, hint: UIStrings.linkTitleHint,
+                  text: $model.form.basic.linkTitle, optional: true)
+            field(UIStrings.subjectLabel, hint: UIStrings.subjectHint,
+                  text: $model.form.basic.subject, optional: true)
         }
     }
 
-    @ViewBuilder
-    private func row(_ label: String, hint: String, text: Binding<String>, optional: Bool = false) -> some View {
-        GridRow {
-            HStack(spacing: 4) {
-                Text(label)
+    private var trimmedEmail: String {
+        model.form.basic.email.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func field(_ label: String, hint: String, text: Binding<String>,
+                       optional: Bool = false, placeholder: String = "",
+                       tabCompletion: (() -> String)? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Text(label).font(.appHeadline)
                 if optional {
                     Text("(\(UIStrings.optional))").foregroundStyle(.tertiary).font(.caption)
                 }
-            }
-            .gridColumnAlignment(.trailing)
-
-            HStack(spacing: 6) {
-                MacTextField(text: text)
-                    .frame(minWidth: 220)
-                    .accessibilityLabel(Text(label))
                 FieldHint(fieldLabel: label, hint: hint)
             }
+            MacTextField(text: text, placeholder: placeholder,
+                         font: .appFieldFont, tabCompletion: tabCompletion)
+                .accessibilityLabel(Text(label))
         }
     }
 }

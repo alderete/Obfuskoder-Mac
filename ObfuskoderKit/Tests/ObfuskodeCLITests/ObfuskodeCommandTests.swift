@@ -46,8 +46,12 @@ private func expectExit64(_ arguments: [String]) {
     expectExit64(["--subject", "x", "--html", "<p>x</p>"])
 }
 
-@Test func emailRequiresLinkText() {                   // CLI-6
-    expectExit64(["-e", "a@b.co"])
+// CLI-6 (revised): --email without --link-text is valid; the link text
+// falls back to the email address.
+@Test func emailAloneParses() throws {
+    let command = try ObfuskodeCommand.parse(["-e", "a@b.co"])
+    #expect(command.email == "a@b.co")
+    #expect(command.linkText == nil)
 }
 
 @Test func helpIncludesExamples() {                    // §5.10

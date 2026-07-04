@@ -7,7 +7,7 @@ struct AdvancedFormView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                Text(UIStrings.advancedLabel).font(.headline)
+                Text(UIStrings.advancedLabel).font(.appHeadline)
                 FieldHint(fieldLabel: UIStrings.advancedLabel, hint: UIStrings.advancedHint)
             }
             MacTextEditor(text: $model.form.advanced)

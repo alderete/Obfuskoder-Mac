@@ -11,6 +11,10 @@ struct AppCommands: Commands {
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
+        // About Obfuskoder — standard panel + custom credits (MENU-1)
+        CommandGroup(replacing: .appInfo) {
+            Button(UIStrings.aboutMenuItem) { AboutPanel.show() }
+        }
         // Obfuskoder ▸ Install Command Line Tool… (SPEC-CLI §6.1)
         CommandGroup(after: .appSettings) {
             Button(UIStrings.installCLITool) { CLIToolInstaller.run() }
@@ -21,8 +25,11 @@ struct AppCommands: Commands {
                 .keyboardShortcut("1", modifiers: .command)
             Button(UIStrings.advanced) { model.form.mode = .advanced; model.scheduleEncode() }
                 .keyboardShortcut("2", modifiers: .command)
-            Button(UIStrings.toggleDecodedSource) { model.showDecodedSource.toggle() }
-                .disabled(model.snippetText == nil)
+            Button(model.showDecodedSource ? UIStrings.hideDecodedSourceMenu
+                                           : UIStrings.showDecodedSourceMenu) {
+                model.showDecodedSource.toggle()
+            }
+            .disabled(model.snippetText == nil)
         }
         CommandGroup(after: .newItem) {
             Button(UIStrings.saveCurrentValues) {
@@ -45,7 +52,12 @@ struct AppCommands: Commands {
             .disabled(model.form.activeIsEmpty)
             Divider()
         }
-        // Help ▸ Command-Line Tool Help (SPEC-CLI §11.2)
+        // Help ▸ Obfuskoder Help (⌘?, replaces the default help-book item —
+        // MENU-4) and Help ▸ Obfuskoder CLI Help (SPEC-CLI §11.2)
+        CommandGroup(replacing: .help) {
+            Button(UIStrings.appHelpMenu) { openWindow(id: "app-help") }
+                .keyboardShortcut("?", modifiers: .command)
+        }
         CommandGroup(after: .help) {
             Button(UIStrings.cliHelpMenu) { openWindow(id: "cli-help") }
         }

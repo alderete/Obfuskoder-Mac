@@ -8,6 +8,7 @@ struct MacTextEditor: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSScrollView {
         let scroll = NSTextView.scrollableTextView()
+        scroll.autohidesScrollers = true
         guard let textView = scroll.documentView as? NSTextView else { return scroll }
         textView.delegate = context.coordinator
         textView.isRichText = false
@@ -20,6 +21,7 @@ struct MacTextEditor: NSViewRepresentable {
         textView.isContinuousSpellCheckingEnabled = false
         textView.isGrammarCheckingEnabled = false
         textView.allowsUndo = true
+        textView.selectedTextAttributes = [.backgroundColor: NSColor.appTextSelection]
         textView.textContainerInset = NSSize(width: 4, height: 6)
         return scroll
     }

@@ -16,6 +16,9 @@ final class AppModel {
     var showDecodedSource = false
     private(set) var result: ResultState = .empty
     private(set) var showCopiedFeedback = false
+    /// Increments per copy so the UI can pulse on every copy, including
+    /// repeat copies inside the feedback window (COLOR-3).
+    private(set) var copyCount = 0
 
     var debounceSeconds: Double = AppConfig.defaultDebounceSeconds
     var fallbackMessage: String = AppConfig.defaultFallbackMessage
@@ -97,6 +100,7 @@ final class AppModel {
         NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
                              userInfo: [.announcement: UIStrings.copied])
         showCopiedFeedback = true
+        copyCount += 1
         copyFeedbackTask?.cancel()
         copyFeedbackTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(5))
