@@ -159,7 +159,7 @@ Fields:
 | Field        | Label (working) | Required | Validation / handling                                                            |
 |--------------|-----------------|----------|----------------------------------------------------------------------------------|
 | `email`      | Email address   | yes      | trimmed; must match a basic email pattern (`^[^\s@]+@[^\s@]+\.[^\s@]+$`)          |
-| `linkText`   | Link text       | yes      | non-empty after trim                                                              |
+| `linkText`   | Link text       | no       | defaults to the email address when empty after trim (shown as ghost text)        |
 | `linkTitle`  | Link title      | no       | any string; trimmed; becomes the `title=` attribute when present                  |
 | `subject`    | Subject         | no       | any string; URL-encoded into the `mailto:` href as `?subject=` when present       |
 

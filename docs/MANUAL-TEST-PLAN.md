@@ -37,6 +37,7 @@ light/dark switch.
 Use `alderete@aldosoft.com` as the email throughout.
 
 - [ ] 3.1 Enter **Email** + **Link text** (e.g. "Email me") → after ~0.4s a snippet appears in the **Obfuskoded snippet** box and the **Preview** shows the link.
+- [ ] 3.1a Enter **Email only** → the Link text field shows the email as **ghost text** (live-updating as you type the email) and a snippet **is generated** using the email as the link text. Tab into Link text and press **Tab** → the field **fills in** with the email, focus stays in the field with the insertion point at the end; a second Tab moves on.
 - [ ] 3.2 The snippet contains **no `@`** and **no readable email** (it's a long number array). Eyeball it.
 - [ ] 3.3 Add a **Link title** (e.g. "Contact Aldosoft") → in the Preview, **hover the link** → the title appears as a tooltip.
 - [ ] 3.4 Add a **Subject** (e.g. "Hello there") → open **▸ Show decoded source** → the decoded `<a>` contains `?subject=Hello%20there` (space percent-encoded).
@@ -52,8 +53,8 @@ For each, Expected = **no snippet, empty/placeholder result, Copy disabled** (no
 - [ ] 4.3 Email = `foo@bar` (no domain dot).
 - [ ] 4.4 Email = `a b@example.com` (space).
 - [ ] 4.5 Email = `two@@example.com`.
-- [ ] 4.6 Valid email, **Link text empty**.
-- [ ] 4.7 Valid email, Link text = `"   "` (spaces only).
+- [ ] 4.6 Valid email, **Link text empty** → **exception:** a snippet IS generated (link text defaults to the email; see 3.1a).
+- [ ] 4.7 Valid email, Link text = `"   "` (spaces only) → same as 4.6 (whitespace counts as empty).
 - [ ] 4.8 Fix the email to a valid one with valid link text → snippet appears (recovers cleanly).
 
 ## 5. Field hints

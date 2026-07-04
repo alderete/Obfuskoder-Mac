@@ -11,8 +11,13 @@ struct BasicFormView: View {
         VStack(alignment: .leading, spacing: 14) {
             field(UIStrings.emailLabel, hint: UIStrings.emailHint,
                   text: $model.form.basic.email)
+            // Empty link text defaults to the email address: shown as ghost
+            // text, accepted into the field with Tab, and used by the encoder.
             field(UIStrings.linkTextLabel, hint: UIStrings.linkTextHint,
-                  text: $model.form.basic.linkText)
+                  text: $model.form.basic.linkText,
+                  placeholder: trimmedEmail,
+                  tabCompletion: { [model] in model.form.basic.email
+                      .trimmingCharacters(in: .whitespacesAndNewlines) })
             field(UIStrings.linkTitleLabel, hint: UIStrings.linkTitleHint,
                   text: $model.form.basic.linkTitle, optional: true)
             field(UIStrings.subjectLabel, hint: UIStrings.subjectHint,
@@ -20,8 +25,13 @@ struct BasicFormView: View {
         }
     }
 
+    private var trimmedEmail: String {
+        model.form.basic.email.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     private func field(_ label: String, hint: String, text: Binding<String>,
-                       optional: Bool = false) -> some View {
+                       optional: Bool = false, placeholder: String = "",
+                       tabCompletion: (() -> String)? = nil) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 Text(label).font(.appHeadline)
@@ -30,7 +40,8 @@ struct BasicFormView: View {
                 }
                 FieldHint(fieldLabel: label, hint: hint)
             }
-            MacTextField(text: text, font: .appFieldFont)
+            MacTextField(text: text, placeholder: placeholder,
+                         font: .appFieldFont, tabCompletion: tabCompletion)
                 .accessibilityLabel(Text(label))
         }
     }

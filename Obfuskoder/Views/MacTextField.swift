@@ -7,6 +7,10 @@ struct MacTextField: NSViewRepresentable {
     var placeholder: String = ""
     var formatter: Formatter?
     var font: NSFont?
+    /// When set and the field is empty, pressing Tab fills the field with this
+    /// value and keeps focus with the caret at the end of the inserted text
+    /// (ghost-text auto-completion); a second Tab then advances as usual.
+    var tabCompletion: (() -> String)?
     var onChange: () -> Void = {}
 
     func makeNSView(context: Context) -> NSTextField {
@@ -25,6 +29,7 @@ struct MacTextField: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSTextField, context: Context) {
+        context.coordinator.parent = self
         if nsView.stringValue != text { nsView.stringValue = text }
         nsView.placeholderString = placeholder
     }
@@ -32,12 +37,29 @@ struct MacTextField: NSViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     final class Coordinator: NSObject, NSTextFieldDelegate {
-        let parent: MacTextField
+        var parent: MacTextField
         init(_ parent: MacTextField) { self.parent = parent }
+
         func controlTextDidChange(_ obj: Notification) {
             guard let field = obj.object as? NSTextField else { return }
             parent.text = field.stringValue
             parent.onChange()
+        }
+
+        func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
+            // Tab in an empty field accepts the ghost-text completion and
+            // consumes the Tab: focus stays here with the caret at the end of
+            // the inserted text (a second Tab advances normally).
+            if selector == #selector(NSResponder.insertTab(_:)),
+               control.stringValue.trimmingCharacters(in: .whitespaces).isEmpty,
+               let completion = parent.tabCompletion?(), !completion.isEmpty {
+                textView.string = completion
+                textView.selectedRange = NSRange(location: (completion as NSString).length, length: 0)
+                parent.text = completion
+                parent.onChange()
+                return true
+            }
+            return false
         }
     }
 }

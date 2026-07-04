@@ -50,10 +50,8 @@ public enum ObfuskodeCLICore {
             guard EmailValidator.isValid(trimmedEmail) else {
                 throw CLIFailure.data("'\(email)' is not a valid email address")
             }
-            let text = (input.linkText ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !text.isEmpty else {
-                throw CLIFailure.data("the link text must not be empty")
-            }
+            // CLI-11 (revised): omitted/blank --link-text is not an error —
+            // BasicFields.canonicalHTML() falls back to the email address.
             let fields = BasicFields(email: trimmedEmail,
                                      linkText: input.linkText ?? "",
                                      linkTitle: input.linkTitle ?? "",

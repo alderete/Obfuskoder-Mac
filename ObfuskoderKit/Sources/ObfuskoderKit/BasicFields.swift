@@ -14,12 +14,14 @@ public struct BasicFields: Codable, Equatable, Sendable {
         self.subject = subject
     }
 
-    /// Canonical `<a>` HTML, or nil when the email is invalid or link text is empty (SPEC §6.3).
+    /// Canonical `<a>` HTML, or nil when the email is invalid (SPEC §6.3).
+    /// Empty/whitespace link text falls back to the email address itself —
+    /// half the time the link text is just the email repeated.
     public func canonicalHTML() -> String? {
         let emailTrimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
         guard EmailValidator.isValid(emailTrimmed) else { return nil }
-        let text = linkText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return nil }
+        let trimmedLinkText = linkText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = trimmedLinkText.isEmpty ? emailTrimmed : trimmedLinkText
 
         let title = linkTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let subj = subject.trimmingCharacters(in: .whitespacesAndNewlines)

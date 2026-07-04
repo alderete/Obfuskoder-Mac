@@ -49,10 +49,18 @@ private func basicInput(email: String? = "sue@example.com",
     }
 }
 
-@Test func blankLinkTextIsDataError() {                // CLI-11
-    #expect(throws: CLIFailure.data("the link text must not be empty")) {
-        _ = try runCore(basicInput(linkText: "   "))
-    }
+// CLI-11 (revised): omitted or blank --link-text falls back to the email
+// address; it is not an error.
+@Test func omittedLinkTextFallsBackToEmail() throws {
+    let snippet = try runCore(basicInput(linkText: nil))
+    #expect(snippet.contains("@") == false)
+    #expect(snippet.isEmpty == false)
+}
+
+@Test func blankLinkTextFallsBackToEmail() throws {
+    let snippet = try runCore(basicInput(linkText: "   "))
+    #expect(snippet.contains("@") == false)
+    #expect(snippet.isEmpty == false)
 }
 
 @Test func fallbackWithAtSignIsDataError() {           // CLI-12

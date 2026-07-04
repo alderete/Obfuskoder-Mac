@@ -357,6 +357,24 @@ needed before building · (no tag) = polish/enhancement.
       field grabs focus when the panel opens (Return then renames instead of
       dismissing) — flag if it bothers.
 
+## 8.5 Behavior changes (added after the original punch-list)
+
+- [x] **BEH-1** — Link text defaults to the email address (requested 2026-07-04).
+      **Built 2026-07-04, TDD:** `BasicFields.canonicalHTML()` now falls back
+      to the trimmed email when link text is empty/whitespace (nil only for an
+      invalid email) — 4 new Kit tests. UI: the Link text field shows the
+      current email as live ghost text; Tab in the empty field fills it in
+      with the email — focus stays put with the caret at the end of the
+      inserted text (MA revision), a second Tab advances
+      (`MacTextField.tabCompletion` via `control(_:textView:doCommandBy:)`
+      on `insertTab`, consuming the Tab). CLI: `--email` no
+      longer requires `--link-text`; omitted/blank falls back (usage guard and
+      CLI-11 data error removed; command + core tests revised; --help text
+      updated). Docs: SPECIFICATION.md field table, SPECIFICATION-CLI.md
+      CLI-6/CLI-11/options table, test plan 3.1a + 4.6/4.7. Verified: 95 Kit/CLI
+      tests green; live app (email-only snippet, ghost text, Tab fill) and
+      embedded CLI (email-only encode, 0 `@`s) both exercised.
+
 ## 9. Testing gaps (re-test, not build)
 
 - [ ] **TEST-1** — Window size/position restore on relaunch — re-test, being
