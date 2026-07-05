@@ -33,5 +33,18 @@ staples the ticket → verifies with `spctl` and `codesign` → zips into `dist/
 
 The script's preflight checks both and explains what's missing.
 
+## App metadata lives in Config/Info.plist
+
+The build-number stamping (MENU-2) gives the app a *physical* Info.plist
+template (`Config/Info.plist`) with `GENERATE_INFOPLIST_FILE = NO` — which
+makes all `INFOPLIST_KEY_*` build settings **inert**: they are only consulted
+when Xcode generates the plist. Consequently:
+
+- Add or change app metadata (category, copyright, display name, …) in
+  `Config/Info.plist`, not in Build Settings and not via the General tab.
+- The General tab's App Category popup reads the (dead) build setting, so it
+  displays as unset — that's expected. Setting it there recreates an inert
+  setting; the shipping value is `LSApplicationCategoryType` in the template.
+
 Day-to-day development is unaffected: Debug builds keep using the
 Apple Development certificate via automatic signing.
