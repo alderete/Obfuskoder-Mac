@@ -42,10 +42,12 @@ struct AppCommands: Commands {
         // Edit commands by separators above and below.
         CommandGroup(after: .pasteboard) {
             Divider()
-            Button(UIStrings.copySnippet) { model.copySnippet() }
-                .keyboardShortcut("c", modifiers: [.command, .shift])
-                .disabled(model.snippetText == nil)
-            Button(UIStrings.clearForm) {
+            Button(UIStrings.copySnippet, systemImage: "arrow.right.page.on.clipboard") {
+                model.copySnippet()
+            }
+            .keyboardShortcut("c", modifiers: [.command, .shift])
+            .disabled(model.snippetText == nil)
+            Button(UIStrings.clearForm, systemImage: "clear") {
                 NotificationCenter.default.post(name: .clearForm, object: nil)
             }
             .keyboardShortcut("k", modifiers: .command)
