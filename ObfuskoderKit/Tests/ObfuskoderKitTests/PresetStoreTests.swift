@@ -75,3 +75,56 @@ private func tempStore() -> (PresetStore, URL) {
     store.move(fromOffsets: IndexSet(integer: 0), toOffset: 2)
     #expect(store.presets.map(\.name) == ["2", "1"])
 }
+
+// A file that exists but can't be decoded must never be silently overwritten:
+// the bytes are moved aside before the store can persist over them, so the
+// user (or a future migration) can still recover them.
+@MainActor @Test func corruptFileIsPreservedNotClobbered() throws {
+    let dir = FileManager.default.temporaryDirectory
+        .appendingPathComponent("obfuskoder-tests-\(UUID().uuidString)", isDirectory: true)
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    let url = dir.appendingPathComponent("presets.json")
+    let corruptBytes = Data("{ this is not valid preset json ".utf8)
+    try corruptBytes.write(to: url)
+
+    let store = PresetStore(fileURL: url)
+    #expect(store.presets.isEmpty)  // couldn't decode → empty, no crash
+
+    // The original bytes were moved aside, intact.
+    let siblings = try FileManager.default.contentsOfDirectory(atPath: dir.path)
+    let asideNames = siblings.filter { $0.hasPrefix("presets.json.corrupt-") }
+    #expect(asideNames.count == 1)
+    let asideURL = dir.appendingPathComponent(asideNames[0])
+    #expect(try Data(contentsOf: asideURL) == corruptBytes)
+
+    // A subsequent save writes a fresh file without destroying anything.
+    _ = try store.save(name: "Fresh", payload: .advanced("x"))
+    let reloaded = PresetStore(fileURL: url)
+    #expect(reloaded.presets.map(\.name) == ["Fresh"])
+    // The set-aside copy still exists after the save+reload cycle.
+    #expect(FileManager.default.fileExists(atPath: asideURL.path))
+}
+
+// A missing file is a clean first launch, not corruption — nothing set aside.
+@MainActor @Test func missingFileIsCleanStart() throws {
+    let (store, url) = tempStore()
+    #expect(store.presets.isEmpty)
+    let dir = url.deletingLastPathComponent()
+    let existed = (try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? []
+    #expect(existed.allSatisfy { !$0.contains("corrupt") })
+}
+
+// A 0-byte file has nothing to preserve — treat it as a clean start, don't
+// litter a useless `.corrupt-` sibling.
+@MainActor @Test func emptyFileIsCleanStartNotCorrupt() throws {
+    let dir = FileManager.default.temporaryDirectory
+        .appendingPathComponent("obfuskoder-tests-\(UUID().uuidString)", isDirectory: true)
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    let url = dir.appendingPathComponent("presets.json")
+    try Data().write(to: url)
+
+    let store = PresetStore(fileURL: url)
+    #expect(store.presets.isEmpty)
+    let siblings = try FileManager.default.contentsOfDirectory(atPath: dir.path)
+    #expect(siblings.allSatisfy { !$0.contains("corrupt") })
+}

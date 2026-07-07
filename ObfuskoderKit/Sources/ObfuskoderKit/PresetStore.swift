@@ -87,8 +87,39 @@ public final class PresetStore {
     }
 
     private func load() {
-        guard let data = try? Data(contentsOf: fileURL),
-              let decoded = try? JSONDecoder().decode([Preset].self, from: data) else { return }
-        presets = decoded
+        // A missing or empty file is a clean first launch (nothing to preserve).
+        guard let data = try? Data(contentsOf: fileURL), !data.isEmpty else { return }
+        if let decoded = try? JSONDecoder().decode([Preset].self, from: data) {
+            presets = decoded
+            return
+        }
+        // The file exists but won't decode. Move it aside before any save can
+        // atomically overwrite (and destroy) recoverable data; leave the list
+        // empty so the app still launches.
+        preserveCorruptFile()
     }
+
+    /// Rename the undecodable store to a timestamped sibling so it survives the
+    /// next `persist()`. Best-effort: if the move itself fails there is nothing
+    /// more a non-throwing launch path can do.
+    private func preserveCorruptFile() {
+        let stamp = Self.timestampFormatter.string(from: Date())
+        var aside = fileURL.deletingLastPathComponent()
+            .appendingPathComponent(fileURL.lastPathComponent + ".corrupt-" + stamp)
+        // Guard against a same-second collision from a prior corrupt load.
+        if FileManager.default.fileExists(atPath: aside.path) {
+            aside = fileURL.deletingLastPathComponent()
+                .appendingPathComponent(fileURL.lastPathComponent
+                    + ".corrupt-" + stamp + "-" + UUID().uuidString.prefix(8))
+        }
+        try? FileManager.default.moveItem(at: fileURL, to: aside)
+    }
+
+    private static let timestampFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(identifier: "UTC")
+        f.dateFormat = "yyyy-MM-dd-HHmmss"
+        return f
+    }()
 }

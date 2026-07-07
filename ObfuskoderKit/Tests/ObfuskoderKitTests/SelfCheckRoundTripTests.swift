@@ -25,6 +25,8 @@ private func roundTrips(_ input: String, k: Int, mask: Int, reversed: Bool) thro
         html: #"<span id="OBFUSKODER_bad001">f</span><script id="OBFUSKODER_bad001_s">(function(){var el=document.getElementById("OBFUSKODER_bad001");if(el){el.outerHTML="WRONG";}})();</script>"#,
         spanID: "OBFUSKODER_bad001", scriptID: "OBFUSKODER_bad001_s",
         decoderJS: #"(function(){var el=document.getElementById("OBFUSKODER_bad001");if(el){el.outerHTML="WRONG";}})();"#,
-        input: "RIGHT")
-    #expect(throws: (any Error).self) { try SelfCheck.verifyRoundTrip(art) }
+        input: "RIGHT", fallback: "f")
+    #expect(throws: SelfCheckError.roundTripMismatch(recovered: "WRONG")) {
+        try SelfCheck.verifyRoundTrip(art)
+    }
 }
