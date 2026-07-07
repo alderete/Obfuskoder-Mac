@@ -31,14 +31,7 @@ struct MacTextEditor: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSScrollView, context: Context) {
         guard let textView = nsView.documentView as? NSTextView else { return }
-        // External replacement (Clear Form, Apply Preset, undo/redo). The
-        // whole-form undo (FormUndo) already cleared the shared manager's
-        // stale text actions; breaking coalescing keeps the text view's own
-        // grouping from merging the next keystroke with pre-replacement edits.
-        if textView.string != text {
-            textView.string = text
-            textView.breakUndoCoalescing()
-        }
+        if textView.string != text { textView.string = text }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }

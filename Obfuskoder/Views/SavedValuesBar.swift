@@ -4,7 +4,6 @@ import ObfuskoderKit
 struct SavedValuesBar: View {
     @Bindable var model: AppModel
     @Environment(PresetStore.self) private var store
-    @Environment(\.undoManager) private var undoManager
 
     @State private var showSaveSheet = false
     @State private var showManageSheet = false
@@ -27,7 +26,7 @@ struct SavedValuesBar: View {
                 if !presets.isEmpty {
                     Divider()
                     ForEach(presets.prefix(Self.menuPresetLimit)) { preset in
-                        Button(preset.name) { model.apply(preset, undoManager: undoManager) }
+                        Button(preset.name) { model.apply(preset) }
                     }
                     if presets.count > Self.menuPresetLimit {
                         Button(UIStrings.additionalItems(count: presets.count - Self.menuPresetLimit)) {

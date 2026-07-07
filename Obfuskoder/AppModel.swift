@@ -67,15 +67,28 @@ final class AppModel {
 
     func clearActiveForm(undoManager: UndoManager?) {
         guard !form.activeIsEmpty else { return }
-        var cleared = form
-        cleared.clearActive()
-        FormUndo.change(self, to: cleared, actionName: UIStrings.clearForm, undoManager: undoManager)
+        let previous = form
+        form.clearActive()
+        scheduleEncode()
+        undoManager?.registerUndo(withTarget: self) { target in
+            target.restoreForm(previous, undoManager: undoManager)
+        }
+        undoManager?.setActionName(UIStrings.clearForm)
     }
 
-    func apply(_ preset: Preset, undoManager: UndoManager?) {
-        var applied = form
-        applied.apply(preset)
-        FormUndo.change(self, to: applied, actionName: UIStrings.applyPreset, undoManager: undoManager)
+    func restoreForm(_ snapshot: FormState, undoManager: UndoManager?) {
+        let current = form
+        form = snapshot
+        scheduleEncode()
+        undoManager?.registerUndo(withTarget: self) { target in
+            target.restoreForm(current, undoManager: undoManager)
+        }
+        undoManager?.setActionName(UIStrings.clearForm)
+    }
+
+    func apply(_ preset: Preset) {
+        form.apply(preset)
+        scheduleEncode()
     }
 
     /// Copy the current snippet to the pasteboard and flash transient "Copied" feedback.
@@ -94,14 +107,5 @@ final class AppModel {
             if Task.isCancelled { return }
             self?.showCopiedFeedback = false
         }
-    }
-}
-
-extension AppModel: FormUndoable {
-    /// Whole-form value for undo. The setter carries the re-encode side effect
-    /// so undo and redo re-run it exactly as a live edit does.
-    var undoableForm: FormState {
-        get { form }
-        set { form = newValue; scheduleEncode() }
     }
 }
