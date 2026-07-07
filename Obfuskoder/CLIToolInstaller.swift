@@ -51,8 +51,27 @@ enum CLIToolInstaller {
             createLink(target: target, source: source, folder: folder)
         case .confirmReplace:
             guard confirmReplace() else { return }
-            try? FileManager.default.removeItem(at: target)
-            createLink(target: target, source: source, folder: folder)
+            // Re-check after the (unbounded) modal: the item could have changed
+            // type while the dialog was up, so re-derive the action rather than
+            // blindly removing what the decision table promised never to touch.
+            switch existingItem(at: target) {
+            case .symlink, .file:
+                do {
+                    try FileManager.default.removeItem(at: target)
+                } catch {
+                    // Surface the real reason (e.g. permission) instead of
+                    // letting createLink fail later with a misleading message.
+                    presentFailure(folder: folder.path, source: source.path,
+                                   reason: error.localizedDescription)
+                    return
+                }
+                createLink(target: target, source: source, folder: folder)
+            case .directory:
+                presentFailure(folder: folder.path, source: source.path,
+                               reason: UIStrings.cliFailReasonDirectory)
+            case .none:
+                createLink(target: target, source: source, folder: folder)
+            }
         case .refuseDirectory:
             presentFailure(folder: folder.path, source: source.path,
                            reason: UIStrings.cliFailReasonDirectory)

@@ -73,12 +73,12 @@ public struct ObfuskodeCommand: ParsableCommand {
 
 /// Injected I/O seams (SPEC-CLI §7.1): tests capture; `.live` is the process.
 public struct CLIIO {
-    public var readStdin: () -> Data?
+    public var readStdin: () throws -> Data?
     public var stdinIsTTY: () -> Bool
     public var writeOut: (String) -> Void
     public var writeErr: (String) -> Void
 
-    public init(readStdin: @escaping () -> Data?,
+    public init(readStdin: @escaping () throws -> Data?,
                 stdinIsTTY: @escaping () -> Bool,
                 writeOut: @escaping (String) -> Void,
                 writeErr: @escaping (String) -> Void) {
@@ -90,7 +90,7 @@ public struct CLIIO {
 
     public static var live: CLIIO {
         CLIIO(
-            readStdin: { try? FileHandle.standardInput.readToEnd() },
+            readStdin: { try FileHandle.standardInput.readToEnd() },
             stdinIsTTY: { isatty(STDIN_FILENO) == 1 },
             writeOut: { FileHandle.standardOutput.write(Data($0.utf8)) },
             writeErr: { FileHandle.standardError.write(Data($0.utf8)) }

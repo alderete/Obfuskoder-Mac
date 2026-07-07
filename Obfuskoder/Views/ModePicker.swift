@@ -11,6 +11,7 @@ import ObfuskoderKit
 struct ModePicker: View {
     @Binding var mode: FormMode
     @Namespace private var selection
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         // No track of our own: the toolbar's glass capsule is the track, and a
@@ -30,7 +31,7 @@ struct ModePicker: View {
 
     private func segment(_ title: String, _ value: FormMode) -> some View {
         Button {
-            withAnimation(.easeOut(duration: 0.15)) { mode = value }
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) { mode = value }
         } label: {
             Text(title)
                 .padding(.horizontal, 14)

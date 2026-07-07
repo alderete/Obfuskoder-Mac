@@ -12,7 +12,10 @@ struct MacTextEditor: NSViewRepresentable {
         guard let textView = scroll.documentView as? NSTextView else { return scroll }
         textView.delegate = context.coordinator
         textView.isRichText = false
-        textView.font = .monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        // Derive from a text style so the editor honors the user's text-size
+        // override (Typography's rule: no fixed point sizes).
+        textView.font = .monospacedSystemFont(
+            ofSize: NSFont.preferredFont(forTextStyle: .body).pointSize, weight: .regular)
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false

@@ -36,13 +36,16 @@ struct AppCommands: Commands {
                 NotificationCenter.default.post(name: .saveCurrentValues, object: nil)
             }
             .keyboardShortcut("s", modifiers: .command)
+            // Nothing worth saving when the active form is empty (also avoids
+            // creating a blank preset).
+            .disabled(model.form.activeIsEmpty)
         }
         // Edit ▸ Copy Snippet (⇧⌘C) + Clear Form (⌘K)
         // The app's own commands, grouped together and fenced off from the standard
         // Edit commands by separators above and below.
         CommandGroup(after: .pasteboard) {
             Divider()
-            Button(UIStrings.copySnippet, systemImage: "arrow.right.page.on.clipboard") {
+            Button(UIStrings.copySnippet, systemImage: "arrow.right.doc.on.clipboard") {
                 model.copySnippet()
             }
             .keyboardShortcut("c", modifiers: [.command, .shift])

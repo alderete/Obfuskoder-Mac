@@ -19,6 +19,7 @@ TEAM_ID=49E99H2Q84
 NOTARY_PROFILE=Obfuskoder
 VERSION=$(git describe --tags --always)
 WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/obfuskoder-release-XXXXXX")
+trap 'rm -rf "$WORK_DIR"' EXIT      # clean up the temp archive/export on any exit
 ARCHIVE="$WORK_DIR/Obfuskoder.xcarchive"
 EXPORT_DIR="$WORK_DIR/export"
 

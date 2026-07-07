@@ -42,3 +42,19 @@ import Testing
     #expect(f.canonicalHTML() ==
         #"<a href="mailto:user@example.com?subject=a%20%26%20b" title="q&quot;o">A &amp; B &lt;x&gt;</a>"#)
 }
+
+// The validator admits URI-delimiter characters in the local part (`[^\s@]+`).
+// They must be percent-encoded in the mailto: address, or a conforming parser
+// mis-reads the recipient (a second `?` swallows the rest into the query).
+@Test func percentEncodesUriDelimitersInEmailAddress() {
+    let f = BasicFields(email: "user?odd&x@example.com", linkText: "Mail", subject: "Hi")
+    #expect(f.canonicalHTML() ==
+        #"<a href="mailto:user%3Fodd%26x@example.com?subject=Hi">Mail</a>"#)
+}
+
+// Ordinary addresses (including plus-addressing and dots) must be untouched.
+@Test func leavesOrdinaryEmailAddressUnencoded() {
+    let f = BasicFields(email: "sue.q+tag@mail.example.com", linkText: "Mail")
+    #expect(f.canonicalHTML() ==
+        #"<a href="mailto:sue.q+tag@mail.example.com">Mail</a>"#)
+}

@@ -22,6 +22,10 @@ struct CLIHelpView: View {
             .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
             Text(inlineMarkdown: UIStrings.cliHelpOutro)
         }
+        // Fixed width + vertical fixedSize so the window is measured for the
+        // fully wrapped paragraphs, not their single-line ideal height (same
+        // trap ObfuskoderHelpView fixed for MENU-4 / FORM-5).
+        .fixedSize(horizontal: false, vertical: true)
         .padding(20)
         .frame(width: 460)
     }

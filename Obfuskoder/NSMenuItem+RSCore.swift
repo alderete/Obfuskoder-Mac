@@ -36,7 +36,12 @@ extension NSMenuItem {
     /// untitled items.
     ///
     /// Call early — `AppDelegate.init` is good.
+    ///
+    /// Idempotent: `method_exchangeImplementations` is an involution, so a
+    /// second call would silently restore every icon. The guard makes repeat
+    /// calls no-ops.
     public static func disableIcons() {
+        guard !didSwizzleIcons else { return }
         let originalSelector = #selector(getter: image)
         let swizzledSelector = #selector(swizzledImage)
 
@@ -46,7 +51,10 @@ extension NSMenuItem {
         }
 
         method_exchangeImplementations(originalMethod, swizzledMethod)
+        didSwizzleIcons = true
     }
+
+    private static var didSwizzleIcons = false
 
     @objc private func swizzledImage() -> NSImage? {
         if shouldShowImage || Self.iconAllowlist.contains(title)

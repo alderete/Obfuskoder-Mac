@@ -27,7 +27,12 @@ final class ScriptedRandom: RandomSource {
     init(ints: [Int], bools: [Bool]) { self.ints = ints; self.bools = bools }
     func int(in range: ClosedRange<Int>) -> Int {
         defer { intCursor += 1 }
-        return ints[intCursor]
+        let value = ints[intCursor]
+        // Catch a mis-scripted test that would feed the engine an out-of-contract
+        // value (e.g. k outside 3...250) instead of silently manufacturing one.
+        precondition(range.contains(value),
+                     "ScriptedRandom value \(value) is outside the requested range \(range)")
+        return value
     }
     func bool() -> Bool {
         defer { boolCursor += 1 }

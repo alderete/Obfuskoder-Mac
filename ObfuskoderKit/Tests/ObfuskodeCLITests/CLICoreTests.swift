@@ -135,6 +135,27 @@ private func basicInput(email: String? = "sue@example.com",
     }
 }
 
+private struct StdinReadFailure: Error {}
+
+// A genuine stdin read failure must be reported as such, not misreported as
+// "input is empty" (which sends the user looking in the wrong place).
+@Test func stdinReadErrorIsReportedDistinctly() {
+    do {
+        _ = try ObfuskodeCLICore.run(basicInput(email: nil, linkText: nil),
+                                     readStdin: { throw StdinReadFailure() },
+                                     stdinIsTTY: { false })
+        Issue.record("expected a data failure")
+    } catch let failure as CLIFailure {
+        guard case .data(let message) = failure else {
+            Issue.record("expected .data, got \(failure)"); return
+        }
+        #expect(message.hasPrefix("could not read standard input"))
+        #expect(!message.contains("empty"))
+    } catch {
+        Issue.record("unexpected error type: \(error)")
+    }
+}
+
 @Test func invalidUTF8StdinIsDataError() {             // CLI-14
     #expect(throws: CLIFailure.data("standard input is not valid UTF-8")) {
         _ = try runCore(basicInput(email: nil, linkText: nil),
