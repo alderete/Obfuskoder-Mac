@@ -16,7 +16,7 @@ enum UIStrings {
 
     // Hints (SPEC §6.3)
     static let emailHint = String(localized: "The email address to be obfuskoded.")
-    static let linkTextHint = String(localized: "The text users will see and click. Also obfuskoded, so you can repeat your email address.")
+    static let linkTextHint = String(localized: "The text users will see and click. Defaults to the email address. Also obfuskoded, so you can repeat your email address.")
     static let linkTitleHint = String(localized: "Pop-up message seen when the mouse hovers over the link.")
     static let subjectHint = String(localized: "A pre-set subject line for the email. Supported by most email clients.")
     static let advancedLabel = String(localized: "HTML to obfuskode")
