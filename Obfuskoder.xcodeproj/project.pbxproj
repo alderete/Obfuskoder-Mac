@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0BF5C0DE0000000000000001 /* ObfuskodeCLI in Frameworks */ = {isa = PBXBuildFile; productRef = 0BF5C0DE0000000000000002 /* ObfuskodeCLI */; };
 		0BF5C0DE0000000000000003 /* obfuskode in Embed CLI Tool */ = {isa = PBXBuildFile; fileRef = 0BF5C0DE0000000000000004 /* obfuskode */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		927FA1012FFED338001FA3E0 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 927FA1002FFED338001FA3E0 /* Sparkle */; };
 		AA00000000000000000000A3 /* ObfuskoderKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000A2 /* ObfuskoderKit */; };
 /* End PBXBuildFile section */
 
@@ -68,6 +69,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA00000000000000000000A3 /* ObfuskoderKit in Frameworks */,
+				927FA1012FFED338001FA3E0 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -138,6 +140,7 @@
 			name = Obfuskoder;
 			packageProductDependencies = (
 				AA00000000000000000000A2 /* ObfuskoderKit */,
+				927FA1002FFED338001FA3E0 /* Sparkle */,
 			);
 			productName = Obfuskoder;
 			productReference = 9287A9032FD3E0F90061BEF9 /* Obfuskoder.app */;
@@ -169,6 +172,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				AA00000000000000000000A1 /* XCLocalSwiftPackageReference "ObfuskoderKit" */,
+				927FA0FF2FFED338001FA3E0 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9287A9042FD3E0F90061BEF9 /* Products */;
@@ -504,10 +508,26 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		927FA0FF2FFED338001FA3E0 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.9.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		0BF5C0DE0000000000000002 /* ObfuskodeCLI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ObfuskodeCLI;
+		};
+		927FA1002FFED338001FA3E0 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 927FA0FF2FFED338001FA3E0 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 		AA00000000000000000000A2 /* ObfuskoderKit */ = {
 			isa = XCSwiftPackageProductDependency;
