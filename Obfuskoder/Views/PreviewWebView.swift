@@ -24,19 +24,7 @@ struct PreviewWebView: NSViewRepresentable {
         let config = WKWebViewConfiguration()
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
-        // Re-measure content height when the view's width changes (e.g. an
-        // HSplitView divider drag): scrollHeight depends on wrap width, and a
-        // one-time didFinish measurement would leave a stale pinned height.
-        webView.postsFrameChangedNotifications = true
-        NotificationCenter.default.addObserver(
-            context.coordinator, selector: #selector(Coordinator.viewFrameChanged(_:)),
-            name: NSView.frameDidChangeNotification, object: webView)
         return webView
-    }
-
-    static func dismantleNSView(_ nsView: WKWebView, coordinator: Coordinator) {
-        NotificationCenter.default.removeObserver(
-            coordinator, name: NSView.frameDidChangeNotification, object: nsView)
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
@@ -87,18 +75,6 @@ struct PreviewWebView: NSViewRepresentable {
         init(_ parent: PreviewWebView) { self.parent = parent }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            measureContentHeight(webView)
-        }
-
-        @objc func viewFrameChanged(_ note: Notification) {
-            guard let webView = note.object as? WKWebView else { return }
-            measureContentHeight(webView)
-        }
-
-        /// Report the rendered document's natural height. Idempotent when the
-        /// width is unchanged (scrollHeight tracks wrap width, not frame height),
-        /// so a height-driven frame change can't feed back into a loop.
-        private func measureContentHeight(_ webView: WKWebView) {
             // body margin (8pt top and bottom) isn't part of scrollHeight.
             webView.evaluateJavaScript("document.body.scrollHeight") { [weak self] result, _ in
                 guard let self, let h = result as? Double else { return }
