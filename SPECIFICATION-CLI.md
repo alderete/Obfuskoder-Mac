@@ -193,29 +193,37 @@ BSD `sysexits(3)` values, so failures are distinguishable in scripts:
 |------|---------------|------------------------------------------------------------------------|
 | 0    | OK            | Snippet written to stdout (or `--help`/`--version`).                   |
 | 64   | `EX_USAGE`    | Bad invocation: unknown/conflicting/missing flags (CLI-4…CLI-7).        |
-| 65   | `EX_DATAERR`  | Flags were well-formed but a *value* was unusable (CLI-10…CLI-14).      |
-| 70   | `EX_SOFTWARE` | The encode-time self-check failed all attempts (§5.8).                  |
+| 65   | `EX_DATAERR`  | Flags were well-formed but a *value* was unusable (CLI-10…CLI-14, §5.8). |
+| 70   | `EX_SOFTWARE` | The self-check failed for reasons not attributable to the input (§5.8). |
 
 *Implementation note:* ArgumentParser exits 64 for `ValidationError`
 automatically. For 65/70, print the message to stderr, then throw
 `ExitCode(65)` / `ExitCode(70)`.
 
-### 5.8 Internal-error path
+### 5.8 Self-check failure paths
 
-If `ObfuskodeEngine.encode` exhausts its attempts
-(`ObfuskodeError.selfCheckFailedRepeatedly`), exit 70 with:
+The engine distinguishes deterministic failures from randomness-dependent ones
+(SPEC §7.3), and the exit code follows the cause:
 
-```
-obfuskode: the encoded snippet failed its self-check repeatedly.
-This can happen when the fallback message contains the input text
-(the snippet would leak it). Otherwise, please report this bug.
-```
+- **Fallback leaks the input** (`ObfuskodeError.selfCheckFailed(.fallbackContainsPlaintext)`)
+  — the user's data to fix, so exit **65** with:
 
-(Rationale: ENC-2's static-leak check rejects any snippet whose fallback
-contains the whole input, so every attempt fails. The `@` case is already
-pre-validated by CLI-12; containment of the input text is the remaining way a
-user-supplied fallback makes encoding impossible, and the message must say so
-rather than presenting a bare "internal error".)
+  ```
+  obfuskode: the fallback message contains the input text (the snippet would leak it)
+  ```
+
+- **Anything else** (`selfCheckFailed` with another cause, or
+  `selfCheckFailedRepeatedly(last:)` after exhausted retries) — a genuine
+  internal failure, so exit **70** with a one-line message naming the cause,
+  e.g.:
+
+  ```
+  obfuskode: the encoded snippet failed its self-check repeatedly (last failure: <cause>); please report this bug
+  ```
+
+(Rationale: 65 means "fix your input", 70 means "report a bug" — CL-3 scripts
+rely on that split. The `@`-in-fallback case is pre-validated by CLI-12 and
+never reaches the engine.)
 
 ### 5.9 Settings independence
 
@@ -491,7 +499,7 @@ reaches it; the Xcode tool target is a three-line shim.
   nothing else; messages land on the stderr seam.
 - ENC-6: two runs, identical input → different snippets.
 - Fallback: default applied; empty accepted; `@` rejected (65);
-  fallback-contains-input surfaces the §5.8 message path (70).
+  fallback-contains-input is a data error (65) per §5.8.
 - Install decision table (§6.4) and preflight predicate (INST-4) as pure
   functions: nothing / correct symlink / wrong symlink / regular file /
   directory; translocated and `/Volumes` paths.

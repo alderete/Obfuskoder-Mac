@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import ObfuskoderKit
 
 /// Manage Saved Values panel (MAC-1/MAC-2). Rows carry a gripper that drags
@@ -116,6 +117,7 @@ private struct PresetRow<G: Gesture>: View {
 
     @State private var editedName: String
     @State private var isHovering = false
+    @FocusState private var nameFocused: Bool
 
     init(store: PresetStore, preset: Preset, showsDivider: Bool,
          gripper: G, moveUp: (() -> Void)?, moveDown: (() -> Void)?) {
@@ -144,10 +146,11 @@ private struct PresetRow<G: Gesture>: View {
             VStack(alignment: .leading, spacing: 1) {
                 TextField("", text: $editedName)
                     .textFieldStyle(.plain)
-                    .onSubmit {
-                        do { try store.rename(id: preset.id, to: editedName.trimmingCharacters(in: .whitespaces)) }
-                        catch { editedName = preset.name }   // revert to what's stored
-                    }
+                    .focused($nameFocused)
+                    .onSubmit { commitRename() }
+                    // Commit (or revert) when focus leaves the field too, so a
+                    // click-away doesn't leave the row and the store disagreeing.
+                    .onChange(of: nameFocused) { if !nameFocused { commitRename() } }
                     .accessibilityLabel(Text(UIStrings.presetNameField))
                 Text(detail)
                     .font(detailIsCode ? .caption.monospaced() : .caption)
@@ -158,7 +161,7 @@ private struct PresetRow<G: Gesture>: View {
             Spacer()
 
             if isHovering {
-                Button(role: .destructive) { try? store.delete(id: preset.id) } label: {
+                Button(role: .destructive) { deletePreset() } label: {
                     Image(systemName: "trash")
                 }
                 .buttonStyle(.borderless)
@@ -176,8 +179,23 @@ private struct PresetRow<G: Gesture>: View {
             if let moveUp { Button(UIStrings.moveUp, action: moveUp) }
             if let moveDown { Button(UIStrings.moveDown, action: moveDown) }
             Divider()
-            Button(UIStrings.delete, role: .destructive) { try? store.delete(id: preset.id) }
+            Button(UIStrings.delete, role: .destructive) { deletePreset() }
         }
+    }
+
+    /// Rename to the edited text, reverting on an empty name and beeping (and
+    /// reverting) if the store rejects it — never silently drop the edit.
+    private func commitRename() {
+        let trimmed = editedName.trimmingCharacters(in: .whitespaces)
+        guard trimmed != preset.name else { return }
+        guard !trimmed.isEmpty else { editedName = preset.name; return }
+        do { try store.rename(id: preset.id, to: trimmed) }
+        catch { NSSound.beep(); editedName = preset.name }
+    }
+
+    private func deletePreset() {
+        do { try store.delete(id: preset.id) }
+        catch { NSSound.beep() }
     }
 
     private var modeSymbol: String {

@@ -374,18 +374,25 @@ just produced:
   stand-in that captures `outerHTML` writes; confirm the recovered string equals
   the input verbatim. (This is the direct Swift analog of the web edition's
   `new Function("document", body)` self-check.)
-- **ENC-2:** confirm the static snippet text contains no occurrence of the input
-  string, and — for a `mailto:` link — no occurrence of the bare email address.
-  (The full adjacency clause needs no separate runtime check: every input code
-  point becomes a number, so the local-part cannot appear adjacent to the domain
-  in static text unless the whole input does, which is already checked.)
+- **ENC-2:** confirm the fallback text does not contain the input as
+  *standalone* text (fragments of unrelated words — "a" inside "JavaScript" —
+  are incidental matches per §7.1, not leaks), and — for a `mailto:` link —
+  that the bare email address appears nowhere in the snippet. The fallback is
+  the only segment where plaintext can surface: every input code point becomes
+  a number, the element ids are random, and the decoder skeleton is fixed, so
+  no whole-snippet input scan is needed (or wanted: it would reject legitimate
+  inputs that coincide with the skeleton's own keywords).
 - **ENC-3:** confirm the static snippet text contains no `@`.
 
 If any assertion fails, the result pane shows an error state and **no snippet is
-displayed**. The encode+verify step retries up to **8 times** to absorb the
-vanishingly rare random-id substring collision. The self-check runs **inside the
-app at encode time**; it is **not** part of the snippet the user pastes
-elsewhere.
+displayed**. Failures that can depend on the random parameters (round-trip or
+JS-engine errors) are retried up to **8 times**; deterministic failures — the
+fallback message leaking the input or email, or carrying an `@` — fail
+immediately with their cause (`ObfuskodeError.selfCheckFailed`), since no retry
+can fix them. Exhausted retries surface the last underlying cause
+(`ObfuskodeError.selfCheckFailedRepeatedly(last:)`). The self-check runs
+**inside the app at encode time**; it is **not** part of the snippet the user
+pastes elsewhere.
 
 > Two JavaScript runtimes are used by design: **JavaScriptCore** for the
 > headless self-check (§7.3), and **WebKit (`WKWebView`)** for the visible,

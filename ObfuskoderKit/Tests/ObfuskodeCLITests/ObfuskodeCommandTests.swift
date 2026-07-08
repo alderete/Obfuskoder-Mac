@@ -101,19 +101,19 @@ private final class IOCapture {
     #expect(capture.out.isEmpty)
 }
 
-@Test func executeSoftwareErrorExits70() {                 // §5.8
+@Test func executeFallbackLeakExits65() {                  // §5.8 (revised)
     let capture = IOCapture()
     do {
         try ObfuskodeCommand.execute(
             input: CLIInput(html: "hello", fallback: "well hello there"),
             io: capture.io())
-        Issue.record("expected ExitCode(70)")
+        Issue.record("expected ExitCode(65)")
     } catch let code as ExitCode {
-        #expect(code == ExitCode(70))
+        #expect(code == ExitCode(65))
     } catch {
         Issue.record("unexpected error type: \(error)")
     }
-    #expect(capture.err.hasPrefix("obfuskode: the encoded snippet failed its self-check repeatedly."))
+    #expect(capture.err == "obfuskode: the fallback message contains the input text (the snippet would leak it)\n")
     #expect(capture.out.isEmpty)
 }
 

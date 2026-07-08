@@ -2,6 +2,10 @@ import Foundation
 import JavaScriptCore
 
 public enum SelfCheckError: Error, Equatable {
+    /// The fallback message contains the input or the email — deterministic;
+    /// the user must change the fallback (or the input).
+    case fallbackContainsPlaintext
+    /// Plaintext found in the snippet outside the fallback (encoder bug).
     case plaintextLeak
     case atSignPresent
     case roundTripMismatch(recovered: String)
@@ -11,11 +15,26 @@ public enum SelfCheckError: Error, Equatable {
 enum SelfCheck {
     /// ENC-2 + ENC-3 (SPEC §7.3).
     static func verifyStringProperties(_ artifact: EncodedArtifact, email: String?) throws {
-        if artifact.html.contains(artifact.input) { throw SelfCheckError.plaintextLeak } // ENC-2
-        if let email, !email.isEmpty, artifact.html.contains(email) {                    // ENC-2
-            throw SelfCheckError.plaintextLeak
+        // ENC-2: plaintext can only surface in the fallback text — the input
+        // is encoded to numbers, the ids are random, and the decoder skeleton
+        // is fixed. Incidental substring matches are not leaks (SPEC §7.1),
+        // so the input counts only when it reads as standalone text in the
+        // fallback ("hello" in "well hello there"), not as a fragment of an
+        // unrelated word ("a" in "JavaScript").
+        if containsStandalone(artifact.input, in: artifact.fallback) {
+            throw SelfCheckError.fallbackContainsPlaintext
         }
-        if artifact.html.contains("@") { throw SelfCheckError.atSignPresent }            // ENC-3
+        if let email, !email.isEmpty {
+            // The raw email is categorical: any occurrence in the fallback is
+            // a leak (a real address can't appear incidentally).
+            if artifact.fallback.contains(email) {
+                throw SelfCheckError.fallbackContainsPlaintext
+            }
+            // Defense-in-depth: the raw email anywhere else in the snippet is
+            // an encoder bug, not a retryable random collision.
+            if artifact.html.contains(email) { throw SelfCheckError.plaintextLeak }
+        }
+        if artifact.html.contains("@") { throw SelfCheckError.atSignPresent }  // ENC-3
     }
 
     /// ENC-1 + ENC-2 + ENC-3.
@@ -33,17 +52,8 @@ enum SelfCheck {
         var thrown: String?
         context.exceptionHandler = { _, value in thrown = value?.toString() }
 
-        // When spanID/scriptID are empty (e.g. test helper passes only decoderJS),
-        // extract the IDs from the decoder JS so the mock DOM resolves correctly.
-        let spanID: String
-        let scriptID: String
-        if artifact.spanID.isEmpty {
-            spanID = extractFirstID(from: artifact.decoderJS)
-            scriptID = spanID.isEmpty ? "" : spanID + "_s"
-        } else {
-            spanID = artifact.spanID
-            scriptID = artifact.scriptID
-        }
+        let spanID = artifact.spanID
+        let scriptID = artifact.scriptID
 
         let harness = """
         var __captured = null;
@@ -68,13 +78,21 @@ enum SelfCheck {
         }
     }
 
-    /// Extract the first `getElementById("...")` argument from `js` (used when
-    /// an artifact's spanID is not separately stored).
-    private static func extractFirstID(from js: String) -> String {
-        let marker = "getElementById(\""
-        guard let start = js.range(of: marker) else { return "" }
-        let rest = js[start.upperBound...]
-        guard let end = rest.range(of: "\"") else { return "" }
-        return String(rest[rest.startIndex..<end.lowerBound])
+    /// True when `needle` occurs in `haystack` not flanked by letters or
+    /// digits — readable as standalone text rather than as an incidental
+    /// fragment of an unrelated word (SPEC §7.1).
+    private static func containsStandalone(_ needle: String, in haystack: String) -> Bool {
+        guard !needle.isEmpty, !haystack.isEmpty else { return false }
+        func isWordChar(_ c: Character) -> Bool { c.isLetter || c.isNumber }
+        var searchStart = haystack.startIndex
+        while let found = haystack.range(of: needle, range: searchStart..<haystack.endIndex) {
+            let clearBefore = found.lowerBound == haystack.startIndex
+                || !isWordChar(haystack[haystack.index(before: found.lowerBound)])
+            let clearAfter = found.upperBound == haystack.endIndex
+                || !isWordChar(haystack[found.upperBound])
+            if clearBefore && clearAfter { return true }
+            searchStart = haystack.index(after: found.lowerBound)
+        }
+        return false
     }
 }

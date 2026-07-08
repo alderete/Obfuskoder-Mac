@@ -44,10 +44,16 @@ struct ContentView: View {
     }
 
     private func syncSettings() {
-        model.debounceSeconds = debounce
+        // Clamp and sanitize at this single choke point: values can arrive from
+        // `defaults write` bypassing the Settings field's own validation, and an
+        // out-of-range debounce or an '@' in the fallback would otherwise make
+        // every encode fail or the app appear dead.
+        model.debounceSeconds = min(max(debounce, AppConfig.minDebounceSeconds),
+                                    AppConfig.maxDebounceSeconds)
+        let sanitized = FallbackSanitizer.strippingAtSigns(from: fallback, cursor: 0).text
         // Blank setting means "use the default message" (CTRL-6).
-        model.fallbackMessage = fallback.trimmingCharacters(in: .whitespaces).isEmpty
-            ? AppConfig.defaultFallbackMessage : fallback
+        model.fallbackMessage = sanitized.trimmingCharacters(in: .whitespaces).isEmpty
+            ? AppConfig.defaultFallbackMessage : sanitized
         model.scheduleEncode()
     }
 }

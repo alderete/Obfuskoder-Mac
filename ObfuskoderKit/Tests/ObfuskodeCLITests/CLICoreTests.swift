@@ -79,6 +79,14 @@ private func basicInput(email: String? = "sue@example.com",
     #expect(snippet.contains("JavaScript required"))
 }
 
+@Test func fallbackMarkupIsEscapedInOutput() throws {
+    let snippet = try runCore(basicInput(email: nil, linkText: nil,
+                                         html: "<b>hello world</b>",
+                                         fallback: "</span><script>alert(1)</script><span>"))
+    #expect(!snippet.contains("<script>alert(1)</script>"))
+    #expect(snippet.contains("&lt;script&gt;alert(1)&lt;/script&gt;"))
+}
+
 @Test func htmlModeEncodesVerbatimInput() throws {     // §5.3
     let snippet = try runCore(basicInput(email: nil, linkText: nil, html: "  <b>hi</b>\n"))
     #expect(snippet.contains("<script"))
@@ -91,18 +99,21 @@ private func basicInput(email: String? = "sue@example.com",
     }
 }
 
-@Test func fallbackContainingInputIsSoftwareError() {  // §5.8
-    do {
+// §5.8 (revised): a fallback that would leak the input is the user's data to
+// fix — a data error (65), not a "report this bug" software error (70).
+@Test func fallbackContainingInputIsDataError() {
+    #expect(throws: CLIFailure.data("the fallback message contains the input text (the snippet would leak it)")) {
         _ = try runCore(basicInput(email: nil, linkText: nil,
                                    html: "hello", fallback: "well hello there"))
-        Issue.record("expected a software failure")
-    } catch let failure as CLIFailure {
-        guard case .software(let message) = failure else {
-            Issue.record("expected .software, got \(failure)"); return
-        }
-        #expect(message.contains("fallback message contains the input text"))
-    } catch {
-        Issue.record("unexpected error type: \(error)")
+    }
+}
+
+// ENC-2 false-positive regression: inputs that coincide with the decoder
+// skeleton's own keywords must encode fine.
+@Test func boilerplateLikeInputsEncode() throws {
+    for html in ["a", "var", "document"] {
+        let snippet = try runCore(basicInput(email: nil, linkText: nil, html: html))
+        #expect(snippet.contains("<script"))
     }
 }
 
@@ -121,6 +132,27 @@ private func basicInput(email: String? = "sue@example.com",
 @Test func nilStdinIsDataError() {
     #expect(throws: CLIFailure.data("no HTML to obfuskode (input is empty)")) {
         _ = try runCore(basicInput(email: nil, linkText: nil), stdinData: nil)
+    }
+}
+
+private struct StdinReadFailure: Error {}
+
+// A genuine stdin read failure must be reported as such, not misreported as
+// "input is empty" (which sends the user looking in the wrong place).
+@Test func stdinReadErrorIsReportedDistinctly() {
+    do {
+        _ = try ObfuskodeCLICore.run(basicInput(email: nil, linkText: nil),
+                                     readStdin: { throw StdinReadFailure() },
+                                     stdinIsTTY: { false })
+        Issue.record("expected a data failure")
+    } catch let failure as CLIFailure {
+        guard case .data(let message) = failure else {
+            Issue.record("expected .data, got \(failure)"); return
+        }
+        #expect(message.hasPrefix("could not read standard input"))
+        #expect(!message.contains("empty"))
+    } catch {
+        Issue.record("unexpected error type: \(error)")
     }
 }
 

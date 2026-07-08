@@ -23,6 +23,9 @@ struct EncodedArtifact: Equatable {
     let scriptID: String
     let decoderJS: String
     let input: String
+    /// The raw (unescaped) fallback message, kept so the self-check can scope
+    /// its plaintext-leak test to the one segment where plaintext can surface.
+    let fallback: String
 }
 
 enum Encoder {
@@ -53,12 +56,15 @@ enum Encoder {
             "var sc=document.getElementById(\"\(scriptID)\");" +
             "if(sc&&sc.parentNode){sc.parentNode.removeChild(sc);}})();"
 
+        // The fallback is display text, not markup: escape it so it can neither
+        // close the span nor inject elements into the visitor's page.
         let html =
-            "<span id=\"\(spanID)\">\(fallbackMessage)</span>" +
+            "<span id=\"\(spanID)\">\(htmlEscapeText(fallbackMessage))</span>" +
             "<script id=\"\(scriptID)\">\(decoderJS)</script>"
 
         return EncodedArtifact(html: html, spanID: spanID, scriptID: scriptID,
-                               decoderJS: decoderJS, input: input)
+                               decoderJS: decoderJS, input: input,
+                               fallback: fallbackMessage)
     }
 
     static func makeArtifact(input: String,

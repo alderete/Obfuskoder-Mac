@@ -34,7 +34,7 @@ public enum ObfuskodeCLICore {
     /// Runs one invocation and returns the verified snippet (no trailing newline).
     /// `readStdin`/`stdinIsTTY` are injected so tests never touch a real terminal.
     public static func run(_ input: CLIInput,
-                           readStdin: () -> Data?,
+                           readStdin: () throws -> Data?,
                            stdinIsTTY: () -> Bool) throws -> String {
         // CLI-12: an '@' in the fallback would fail ENC-3 on every attempt.
         guard !input.fallback.contains("@") else {
@@ -72,12 +72,23 @@ public enum ObfuskodeCLICore {
         let engine = ObfuskodeEngine(fallbackMessage: input.fallback)
         do {
             return try engine.encode(canonical, email: leakCheckEmail).html
-        } catch {
-            throw CLIFailure.software("""
-                the encoded snippet failed its self-check repeatedly.
-                This can happen when the fallback message contains the input text
-                (the snippet would leak it). Otherwise, please report this bug.
-                """)
+        } catch ObfuskodeError.selfCheckFailed(.fallbackContainsPlaintext) {
+            // §5.8 (revised): the user's data to fix — exit 65, not 70.
+            throw CLIFailure.data("the fallback message contains the input text (the snippet would leak it)")
+        } catch ObfuskodeError.selfCheckFailed(let cause) {
+            throw CLIFailure.software("the encoded snippet failed its self-check (\(describe(cause))); please report this bug")
+        } catch ObfuskodeError.selfCheckFailedRepeatedly(let last) {
+            throw CLIFailure.software("the encoded snippet failed its self-check repeatedly (last failure: \(describe(last))); please report this bug")
+        }
+    }
+
+    private static func describe(_ error: SelfCheckError) -> String {
+        switch error {
+        case .fallbackContainsPlaintext: "the fallback message contains the input text"
+        case .plaintextLeak: "plaintext leaked into the snippet"
+        case .atSignPresent: "an '@' remained in the snippet"
+        case .roundTripMismatch: "the decoded output did not match the input"
+        case .engineError(let message): "JavaScript engine error: \(message)"
         }
     }
 
@@ -91,12 +102,19 @@ public enum ObfuskodeCLICore {
     }
 
     /// CLI-7 / CLI-14: stdin is read only when it is not a TTY.
-    private static func readFromStdin(readStdin: () -> Data?,
+    private static func readFromStdin(readStdin: () throws -> Data?,
                                       stdinIsTTY: () -> Bool) throws -> String {
         guard !stdinIsTTY() else {
             throw CLIFailure.usage("missing input: pass --email or --html, or pipe HTML to standard input")
         }
-        guard let data = readStdin(), !data.isEmpty else {
+        let data: Data?
+        do {
+            data = try readStdin()
+        } catch {
+            // A genuine read failure is not the same as no input (CLI-14).
+            throw CLIFailure.data("could not read standard input: \(error)")
+        }
+        guard let data, !data.isEmpty else {
             throw CLIFailure.data("no HTML to obfuskode (input is empty)")
         }
         guard let text = String(data: data, encoding: .utf8) else {

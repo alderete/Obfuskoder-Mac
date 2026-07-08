@@ -26,7 +26,7 @@ public struct BasicFields: Codable, Equatable, Sendable {
         let title = linkTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let subj = subject.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        var href = "mailto:" + emailTrimmed
+        var href = "mailto:" + percentEncodeMailtoAddress(emailTrimmed)
         if !subj.isEmpty { href += "?subject=" + percentEncodeComponent(subj) }
 
         var html = "<a href=\"" + htmlEscapeAttribute(href) + "\""

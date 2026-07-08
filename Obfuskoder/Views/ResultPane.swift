@@ -5,6 +5,7 @@ import ObfuskoderKit
 struct ResultPane: View {
     @Bindable var model: AppModel
     @State private var previewContentHeight: CGFloat?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         // The snippet is a chunky block of code; the preview is usually a
@@ -32,7 +33,9 @@ struct ResultPane: View {
                         Button(UIStrings.copy, systemImage: "doc.on.doc") { model.copySnippet() }
                             .buttonStyle(.borderedProminent)
                             .disabled(model.snippetText == nil)
-                            .phaseAnimator([1.0, 1.07], trigger: model.copyCount) { view, scale in
+                            // Single phase under Reduce Motion → no scale pulse.
+                            .phaseAnimator(reduceMotion ? [1.0] : [1.0, 1.07],
+                                           trigger: model.copyCount) { view, scale in
                                 view.scaleEffect(scale)
                             } animation: { _ in .spring(duration: 0.18) }
                     }
@@ -78,7 +81,9 @@ struct ResultPane: View {
                 Spacer(minLength: 0)
             }
             .padding(16)
-            .animation(.default, value: model.showDecodedSource)
+            // The decoded-source open/close resizes the preview (motion); honor
+            // Reduce Motion by snapping instead of squeezing.
+            .animation(reduceMotion ? nil : .default, value: model.showDecodedSource)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }

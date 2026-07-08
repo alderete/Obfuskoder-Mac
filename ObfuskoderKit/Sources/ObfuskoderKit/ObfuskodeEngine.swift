@@ -10,7 +10,12 @@ public struct Snippet: Equatable, Sendable {
 }
 
 public enum ObfuskodeError: Error, Equatable {
-    case selfCheckFailedRepeatedly
+    /// A deterministic self-check failure that retrying cannot fix (the
+    /// fallback message leaks plaintext or contains '@').
+    case selfCheckFailed(SelfCheckError)
+    /// Every attempt failed a randomness-dependent check; the last underlying
+    /// cause is attached.
+    case selfCheckFailedRepeatedly(last: SelfCheckError)
 }
 
 public struct ObfuskodeEngine: Sendable {
@@ -26,15 +31,24 @@ public struct ObfuskodeEngine: Sendable {
     public func encode(_ input: String,
                        email: String? = nil,
                        random: RandomSource = SystemRandomSource()) throws -> Snippet {
-        for _ in 0..<maxAttempts {
+        var lastError = SelfCheckError.engineError("no attempts made")
+        for _ in 0..<max(1, maxAttempts) {
             let art = Encoder.makeArtifact(input: input, fallbackMessage: fallbackMessage, random: random)
             do {
                 try SelfCheck.verify(art, email: email)
                 return Snippet(html: art.html, decodedSource: input)
-            } catch {
-                continue   // extremely rare random-id collision; retry
+            } catch let error as SelfCheckError {
+                switch error {
+                case .fallbackContainsPlaintext, .plaintextLeak, .atSignPresent:
+                    // Deterministic: the same fallback/input fails every
+                    // attempt — surface the cause instead of burning retries.
+                    throw ObfuskodeError.selfCheckFailed(error)
+                case .roundTripMismatch, .engineError:
+                    lastError = error
+                    continue   // may depend on the random parameters; retry
+                }
             }
         }
-        throw ObfuskodeError.selfCheckFailedRepeatedly
+        throw ObfuskodeError.selfCheckFailedRepeatedly(last: lastError)
     }
 }
