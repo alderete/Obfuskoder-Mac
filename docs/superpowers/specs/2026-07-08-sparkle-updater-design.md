@@ -132,8 +132,10 @@ exception is an array of custom strings and cannot be a build-setting toggle, so
   - `<title>` (human label, e.g. "Obfuskoder 1.0b6")
   - `sparkle:version` = build number, `sparkle:shortVersionString` = "1.0"
   - `sparkle:minimumSystemVersion` = "14.0"
-  - embedded release notes (`<description>` CDATA) derived from the same notes
-    published to the GitHub Release (markdown→HTML step pinned in the plan)
+  - embedded release notes (`<description>` CDATA): release notes are authored
+    and published in **Markdown**, and embedded as-is (wrapped so they render
+    readably in Sparkle's dialog). A Markdown→HTML conversion may be added later;
+    if so, this spec is updated then.
   - `<enclosure url="https://github.com/alderete/Obfuskoder-Mac/releases/download/<tag>/Obfuskoder-<tag>.zip"
     sparkle:edSignature="…" length="…" type="application/octet-stream"/>`
 - The script prints instructions to upload `updates/obfuskoder/appcast.xml` to

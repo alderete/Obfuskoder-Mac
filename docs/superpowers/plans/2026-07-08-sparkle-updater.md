@@ -697,6 +697,6 @@ Discard the temporary title change, the localhost `SUFeedURL`/ATS exception, and
 
 **Type consistency:** `UpdateFrequency` / `automaticallyChecks` / `checkInterval` / `AppConfig.defaultUpdateFrequency` / `SettingsKeys.updateFrequency` / `SoftwareUpdater.canCheckForUpdates` / `checkForUpdates()` / `apply(_:)` / `AppCommands(model:softwareUpdater:)` used consistently across Tasks 2–6.
 
-## Deviation from spec to flag
+## Release-notes format (matches spec)
 
-The spec said the appcast would embed the release notes via a **markdown→HTML** step. To avoid a hard dependency (macOS ships no markdown CLI), Task 7 pins a dependency-free approach: embed the notes file's text wrapped in `<pre>` (readable in Sparkle's dialog), or fall back to a link to the GitHub release notes. Full markdown→HTML (e.g. via `pandoc`) can be added later. Flag for user awareness.
+Release notes are authored and published in **Markdown** and embedded into the appcast `<description>` as-is, wrapped in `<pre>` so they render readably in Sparkle's dialog (Task 7 Step 2); when no notes file is given, the entry links to the GitHub release notes. No Markdown→HTML conversion (macOS ships no Markdown CLI); it can be added later (e.g. via `pandoc`), at which point the spec is updated.
