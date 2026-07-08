@@ -43,9 +43,6 @@ struct PreviewWebView: NSViewRepresentable {
         context.coordinator.parent = self
         guard context.coordinator.lastKey != reloadKey else { return }
         context.coordinator.lastKey = reloadKey
-        // Allow exactly the navigation this load triggers; the delegate cancels
-        // any other (link click or scripted escape).
-        context.coordinator.allowNextLoad = true
         // The "non-interactive" toast is rendered in-page so it can anchor to
         // the exact click point without moving any SwiftUI layout (CTRL-2).
         let toastMessage = UIStrings.previewNonInteractive
@@ -87,9 +84,6 @@ struct PreviewWebView: NSViewRepresentable {
     final class Coordinator: NSObject, WKNavigationDelegate {
         var parent: PreviewWebView
         var lastKey: String?
-        /// Set right before each `loadHTMLString`; the next navigation decision
-        /// consumes it to allow that one load and cancel everything else.
-        var allowNextLoad = false
         init(_ parent: PreviewWebView) { self.parent = parent }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -115,14 +109,12 @@ struct PreviewWebView: NSViewRepresentable {
         func webView(_ webView: WKWebView,
                      decidePolicyFor navigationAction: WKNavigationAction,
                      decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
-            // Allow only the load we just triggered; a link click or a scripted
-            // `location`/<meta refresh> escape (the CSP doesn't govern top-level
-            // navigation) is cancelled.
-            let programmatic = allowNextLoad
-            allowNextLoad = false
+            // Allow the null-origin in-memory load; cancel a link click or a
+            // scripted `location`/<meta refresh> escape to a real URL (the CSP
+            // doesn't govern top-level navigation).
             switch PreviewNavigationPolicy.decision(
-                isProgrammaticLoad: programmatic,
-                isLinkActivation: navigationAction.navigationType == .linkActivated) {
+                isLinkActivation: navigationAction.navigationType == .linkActivated,
+                url: navigationAction.request.url) {
             case .allow:
                 decisionHandler(.allow)        // the in-memory document load
             case .cancelAndExplain:

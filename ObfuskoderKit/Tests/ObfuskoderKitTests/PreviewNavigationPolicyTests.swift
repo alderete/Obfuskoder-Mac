@@ -2,24 +2,30 @@ import Testing
 import Foundation
 import ObfuskoderKit
 
-// The view's own loadHTMLString is the one navigation the preview allows,
-// regardless of how WebKit reports its URL or whether it looks like a link.
-@Test func allowsTheProgrammaticLoad() {
-    #expect(PreviewNavigationPolicy.decision(isProgrammaticLoad: true,
-                                             isLinkActivation: false) == .allow)
-    #expect(PreviewNavigationPolicy.decision(isProgrammaticLoad: true,
-                                             isLinkActivation: true) == .allow)
+// The in-memory document loads from a null origin (about:blank / empty / nil,
+// depending on WebKit); all of those must be allowed so the preview renders.
+@Test func allowsNullOriginLoad() {
+    #expect(PreviewNavigationPolicy.decision(isLinkActivation: false,
+                                             url: URL(string: "about:blank")) == .allow)
+    #expect(PreviewNavigationPolicy.decision(isLinkActivation: false, url: nil) == .allow)
+    #expect(PreviewNavigationPolicy.decision(isLinkActivation: false,
+                                             url: URL(string: "about:srcdoc")) == .allow)
 }
 
-// A link click is cancelled but explained (the toast hint).
+// A scripted location=/meta-refresh escape targets a real scheme and is
+// cancelled silently (the user did nothing to explain).
+@Test func cancelsScriptedEscapeToRealURL() {
+    for target in ["https://example.com/", "http://evil.test/x", "file:///etc/passwd"] {
+        #expect(PreviewNavigationPolicy.decision(isLinkActivation: false,
+                                                 url: URL(string: target)) == .cancelSilently,
+                "target: \(target)")
+    }
+}
+
+// A link click is cancelled but explained (the toast hint), whatever its URL.
 @Test func cancelsLinkActivationWithExplanation() {
-    #expect(PreviewNavigationPolicy.decision(isProgrammaticLoad: false,
-                                             isLinkActivation: true) == .cancelAndExplain)
-}
-
-// Scripted navigation (location =, <meta refresh>) is cancelled silently —
-// the user did nothing to explain.
-@Test func cancelsScriptedNavigationSilently() {
-    #expect(PreviewNavigationPolicy.decision(isProgrammaticLoad: false,
-                                             isLinkActivation: false) == .cancelSilently)
+    #expect(PreviewNavigationPolicy.decision(isLinkActivation: true,
+                                             url: URL(string: "https://example.com/")) == .cancelAndExplain)
+    #expect(PreviewNavigationPolicy.decision(isLinkActivation: true,
+                                             url: URL(string: "about:blank")) == .cancelAndExplain)
 }
