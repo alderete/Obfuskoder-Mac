@@ -6,5 +6,28 @@
 		<description>Software updates for Obfuskoder.</description>
 		<language>en</language>
 		<!-- ITEMS: newest first; entries below are appended by scripts/release.sh -->
+		<item>
+			<title>Obfuskoder 1.0b6</title>
+			<pubDate>Wed, 08 Jul 2026 19:06:56 -0700</pubDate>
+			<sparkle:version>101</sparkle:version>
+			<sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+			<sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+			<description><![CDATA[<pre style="white-space:pre-wrap;font:13px -apple-system,sans-serif">## Obfuskoder 1.0b6
+
+**Automatic software updates.**
+
+- Obfuskoder can now check for updates and install them for you. Choose how
+  often in **Settings → Software Updates** — Daily, Weekly, **Monthly** (default),
+  or Never — or check any time from **Obfuskoder → Check for Updates…**.
+- Updates are Developer-ID signed, notarized, and cryptographically verified
+  before installing.
+
+*This is the release that turns auto-updates on: install it once (manually), and
+future beta builds can update themselves in place.*
+
+**Also**
+- Obfuskoder is now open source under the MIT license.</pre>]]></description>
+			<enclosure url="https://github.com/alderete/Obfuskoder-Mac/releases/download/1.0b6/Obfuskoder-1.0b6.zip" sparkle:edSignature="64encRVWYwlhElRZoAzk38D1lrdp4lX0lD4IRmD/iWbLXJgLMsZk+T3o+YOk2304vo1A+8DxacDKrf97McJzBA==" length="5270299" type="application/octet-stream"/>
+		</item>
 	</channel>
 </rss>
