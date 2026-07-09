@@ -17,7 +17,7 @@ struct ObfuskoderApp: App {
                 .frame(minWidth: 720, minHeight: 420)
         }
         .windowResizability(.contentMinSize)
-        .commands { AppCommands(model: model) }
+        .commands { AppCommands(model: model, softwareUpdater: softwareUpdater) }
 
         Settings {
             SettingsView()

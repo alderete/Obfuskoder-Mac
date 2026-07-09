@@ -78,6 +78,7 @@ enum UIStrings {
 
     // Command-line tool install (SPEC-CLI §6)
     static let installCLITool = String(localized: "Install Command Line Tool…")
+    static let checkForUpdates = String(localized: "Check for Updates…")
     static let cliInstallPrompt = String(localized: "Install")
     static let cliInstallPanelMessage = String(localized: "Choose where to install the obfuskode command-line tool. A symbolic link to the tool inside Obfuskoder will be created in this folder.")
     static let cliMoveToApplicationsTitle = String(localized: "Move Obfuskoder to your Applications folder first.")
