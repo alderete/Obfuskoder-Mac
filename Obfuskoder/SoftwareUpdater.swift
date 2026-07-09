@@ -23,6 +23,9 @@ final class SoftwareUpdater {
         apply(stored)
 
         // Republish Sparkle's KVO-observable canCheckForUpdates on the main actor.
+        // .receive(on: RunLoop.main) is required, not cosmetic: this class is
+        // @MainActor, so the sink closure must be delivered on the main thread to
+        // assign the MainActor-isolated canCheckForUpdates without a data race.
         cancellable = controller.updater.publisher(for: \.canCheckForUpdates)
             .receive(on: RunLoop.main)
             .sink { [weak self] value in self?.canCheckForUpdates = value }

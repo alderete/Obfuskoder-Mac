@@ -91,7 +91,9 @@ else
 fi
 
 APPCAST="updates/obfuskoder/appcast.xml"
-ITEM_FILE="$(mktemp)"
+# ITEM_FILE lives under WORK_DIR so the EXIT trap removes it even if a later
+# step aborts under `set -e` before the explicit cleanup runs.
+ITEM_FILE="$WORK_DIR/appcast-item.xml"
 cat > "$ITEM_FILE" <<ITEM
 		<item>
 			<title>Obfuskoder $VERSION</title>
