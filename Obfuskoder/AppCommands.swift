@@ -8,12 +8,17 @@ extension Notification.Name {
 
 struct AppCommands: Commands {
     let model: AppModel
+    let softwareUpdater: SoftwareUpdater
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
         // About Obfuskoder — standard panel + custom credits (MENU-1)
         CommandGroup(replacing: .appInfo) {
             Button(UIStrings.aboutMenuItem) { AboutPanel.show() }
+        }
+        // Obfuskoder ▸ Check for Updates… — standard spot, just below About.
+        CommandGroup(after: .appInfo) {
+            CheckForUpdatesView(updater: softwareUpdater)
         }
         // Obfuskoder ▸ Install Command Line Tool… (SPEC-CLI §6.1)
         CommandGroup(after: .appSettings) {

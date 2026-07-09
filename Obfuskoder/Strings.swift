@@ -75,9 +75,17 @@ enum UIStrings {
     // Settings
     static let settingsEncodingDelay = String(localized: "Encoding delay")
     static let settingsFallbackMessage = String(localized: "No-JavaScript fallback message")
+    static let settingsSoftwareUpdates = String(localized: "Software Updates")
+    static let settingsCheckFrequency = String(localized: "Check for updates:")
+    static let checkForUpdatesNow = String(localized: "Check Now")
+    static let updateFrequencyDaily = String(localized: "Daily")
+    static let updateFrequencyWeekly = String(localized: "Weekly")
+    static let updateFrequencyMonthly = String(localized: "Monthly")
+    static let updateFrequencyNever = String(localized: "Never")
 
     // Command-line tool install (SPEC-CLI §6)
     static let installCLITool = String(localized: "Install Command Line Tool…")
+    static let checkForUpdates = String(localized: "Check for Updates…")
     static let cliInstallPrompt = String(localized: "Install")
     static let cliInstallPanelMessage = String(localized: "Choose where to install the obfuskode command-line tool. A symbolic link to the tool inside Obfuskoder will be created in this folder.")
     static let cliMoveToApplicationsTitle = String(localized: "Move Obfuskoder to your Applications folder first.")

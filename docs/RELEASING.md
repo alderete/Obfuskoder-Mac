@@ -48,3 +48,35 @@ when Xcode generates the plist. Consequently:
 
 Day-to-day development is unaffected: Debug builds keep using the
 Apple Development certificate via automatic signing.
+
+## Software updates (Sparkle)
+
+After the notarized zip is built, `scripts/release.sh` signs it with
+Sparkle's `sign_update` and appends a new `<item>` to the repo-tracked
+appcast at `updates/obfuskoder/appcast.xml`. This is a local, offline step —
+no notarization or GitHub access is required — but it does need a Sparkle
+build once resolved by Xcode (the `sign_update` tool ships in the SPM
+artifact bundle under DerivedData; the script locates it dynamically).
+
+- **Appcast location**: `updates/obfuskoder/appcast.xml` is committed to the
+  repo, but Sparkle clients read it from
+  `https://updates.aldosoft.com/obfuskoder/appcast.xml`. After the script
+  updates the file and you commit it, **manually upload the updated
+  `appcast.xml` to `updates.aldosoft.com/obfuskoder/`** — pushing to git does
+  not publish it.
+- **Release notes**: pass an optional notes file as the script's first
+  argument: `scripts/release.sh path/to/notes.md`. Its contents are embedded
+  as-is (wrapped in `<pre>`) in the appcast item's `<description>` — notes
+  are authored in plain text/Markdown, with **no Markdown→HTML conversion**,
+  so keep them simple. Without a notes file, the item links to the GitHub
+  release page instead.
+- **EdDSA signing key**: `sign_update` signs the zip with an EdDSA private
+  key Sparkle generates and stores in the login Keychain (via Sparkle's
+  `generate_keys` tool, one-time setup). **Back this key up** — if it's
+  lost, existing installs can no longer verify (and therefore can't
+  install) future updates, and there's no recovery path other than shipping
+  a new public key and asking every user to reinstall manually.
+- **`SUPublicEDKey`**: the public half of that same key lives in
+  `Config/Info.plist` as `SUPublicEDKey` and must match the private key used
+  to sign — if it's ever rotated, update `Config/Info.plist` and ship that
+  change before generating any appcast entries signed with the new key.

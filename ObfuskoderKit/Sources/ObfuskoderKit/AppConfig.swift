@@ -8,4 +8,6 @@ public enum AppConfig {
     public static let accentHex = "5E7C50"
     public static let maxSelfCheckAttempts = 8
     public static let projectPageURL = "https://github.com/alderete/Obfuskoder-Mac"
+    /// Default automatic-update cadence (SPEC: Sparkle updater).
+    public static let defaultUpdateFrequency: UpdateFrequency = .monthly
 }

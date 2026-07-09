@@ -3,8 +3,10 @@ import AppKit
 import ObfuskoderKit
 
 struct SettingsView: View {
+    @Environment(SoftwareUpdater.self) private var updater
     @AppStorage(SettingsKeys.debounceSeconds) private var debounce = AppConfig.defaultDebounceSeconds
     @AppStorage(SettingsKeys.fallbackMessage) private var fallback = AppConfig.defaultFallbackMessage
+    @AppStorage(SettingsKeys.updateFrequency) private var frequency = AppConfig.defaultUpdateFrequency
 
     var body: some View {
         Form {
@@ -26,6 +28,18 @@ struct SettingsView: View {
                     // this covers values that reach defaults from outside the UI.
                     .onChange(of: fallback) { fallback = fallback.replacingOccurrences(of: "@", with: "") }
                     .accessibilityLabel(Text(UIStrings.settingsFallbackMessage))
+            }
+            Section(UIStrings.settingsSoftwareUpdates) {
+                Picker(UIStrings.settingsCheckFrequency, selection: $frequency) {
+                    Text(UIStrings.updateFrequencyDaily).tag(UpdateFrequency.daily)
+                    Text(UIStrings.updateFrequencyWeekly).tag(UpdateFrequency.weekly)
+                    Text(UIStrings.updateFrequencyMonthly).tag(UpdateFrequency.monthly)
+                    Text(UIStrings.updateFrequencyNever).tag(UpdateFrequency.never)
+                }
+                .onChange(of: frequency) { updater.apply(frequency) }
+
+                Button(UIStrings.checkForUpdatesNow) { updater.checkForUpdates() }
+                    .disabled(!updater.canCheckForUpdates)
             }
         }
         .formStyle(.grouped)

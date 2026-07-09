@@ -7,6 +7,7 @@ struct ObfuskoderApp: App {
 
     @State private var model = AppModel()
     @State private var store = PresetStore(fileURL: ObfuskoderApp.presetsURL())
+    @State private var softwareUpdater = SoftwareUpdater()
 
     var body: some Scene {
         Window(UIStrings.appName, id: "main") {
@@ -16,11 +17,12 @@ struct ObfuskoderApp: App {
                 .frame(minWidth: 720, minHeight: 420)
         }
         .windowResizability(.contentMinSize)
-        .commands { AppCommands(model: model) }
+        .commands { AppCommands(model: model, softwareUpdater: softwareUpdater) }
 
         Settings {
             SettingsView()
                 .environment(model)
+                .environment(softwareUpdater)
         }
 
         // Small fixed-size help windows, close with ⌘W. commandsRemoved: no
