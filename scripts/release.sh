@@ -63,5 +63,50 @@ codesign --verify --deep --strict "$APP"
 mkdir -p dist
 FINAL_ZIP="dist/Obfuskoder-$VERSION.zip"
 ditto -c -k --keepParent "$APP" "$FINAL_ZIP"
+
+echo "== Sign update & append appcast entry =="
+NOTES_FILE="${1:-}"
+SPARKLE_BIN="$(find "$HOME/Library/Developer/Xcode/DerivedData" -type d -path '*/artifacts/sparkle/Sparkle/bin' 2>/dev/null | head -1)"
+if [ -z "$SPARKLE_BIN" ] || [ ! -x "$SPARKLE_BIN/sign_update" ]; then
+    echo "error: Sparkle 'sign_update' not found. Build the app once in Xcode to resolve the Sparkle package, then re-run." >&2
+    exit 1
+fi
+
+# sign_update prints e.g.: sparkle:edSignature="…" length="12345"
+SIG_ATTRS="$("$SPARKLE_BIN/sign_update" "$FINAL_ZIP")"
+BUILD_NUMBER="$(git rev-list --count HEAD)"
+DL_URL="https://github.com/alderete/Obfuskoder-Mac/releases/download/$VERSION/Obfuskoder-$VERSION.zip"
+PUB_DATE="$(date -R 2>/dev/null || date '+%a, %d %b %Y %H:%M:%S %z')"
+
+# Release notes: embed the notes file (wrapped for readable rendering in
+# Sparkle's WebView) if given, else link to the GitHub release page.
+if [ -n "$NOTES_FILE" ] && [ -f "$NOTES_FILE" ]; then
+    NOTES_HTML="<pre style=\"white-space:pre-wrap;font:13px -apple-system,sans-serif\">$(sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' "$NOTES_FILE")</pre>"
+else
+    NOTES_HTML="<p>See the <a href=\"https://github.com/alderete/Obfuskoder-Mac/releases/tag/$VERSION\">release notes on GitHub</a>.</p>"
+fi
+
+APPCAST="updates/obfuskoder/appcast.xml"
+ITEM_FILE="$(mktemp)"
+cat > "$ITEM_FILE" <<ITEM
+		<item>
+			<title>Obfuskoder $VERSION</title>
+			<pubDate>$PUB_DATE</pubDate>
+			<sparkle:version>$BUILD_NUMBER</sparkle:version>
+			<sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+			<sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+			<description><![CDATA[$NOTES_HTML]]></description>
+			<enclosure url="$DL_URL" $SIG_ATTRS type="application/octet-stream"/>
+		</item>
+ITEM
+
+# Insert the new item immediately after the ITEMS marker (newest first).
+awk '/<!-- ITEMS/{print; while((getline line < "'"$ITEM_FILE"'")>0) print line; close("'"$ITEM_FILE"'"); next} {print}' "$APPCAST" > "$APPCAST.tmp" && mv "$APPCAST.tmp" "$APPCAST"
+rm -f "$ITEM_FILE"
+
+xmllint --noout "$APPCAST" && echo "appcast is well-formed: $APPCAST"
+echo ""
+echo "ACTION REQUIRED: upload $APPCAST to https://updates.aldosoft.com/obfuskoder/appcast.xml"
+
 echo "== Done =="
 echo "Notarized, stapled build: $FINAL_ZIP"
