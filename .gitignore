@@ -81,3 +81,4 @@ iOSInjectionProject/
 
 # Release artifacts
 dist/
+/docs/screenshots
