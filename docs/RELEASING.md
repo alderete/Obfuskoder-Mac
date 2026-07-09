@@ -10,6 +10,25 @@ scripts/release.sh
 gh release create 1.0b4 dist/Obfuskoder-1.0b4.zip --prerelease --title "Obfuskoder 1.0b4" --notes "…"
 ```
 
+## Verify the downloadable asset (don't skip — a `ditto` extract hides the bug)
+
+`release.sh` checks the app in its export dir with `spctl`, but that does **not**
+exercise how a user's download extracts. Because the app embeds
+`Sparkle.framework` (a versioned bundle of symlinks), a zip that carries
+AppleDouble `._*` companions breaks the framework's code seal when a *naive*
+unarchiver expands it — Gatekeeper then rejects the app ("unsealed contents in an
+embedded framework" / "cannot verify free of malware"). `release.sh` builds the
+zip with `ditto … --norsrc --noextattr` to prevent this; verify each release the
+way a user would, using **plain `unzip`, not `ditto`** (ditto masks the problem):
+
+```sh
+unzip -q dist/Obfuskoder-<tag>.zip -d /tmp/relcheck
+# want zero output (no ._* files at the framework root):
+ls -a "/tmp/relcheck/Obfuskoder.app/Contents/Frameworks/Sparkle.framework/" | grep '^\._'
+# want: accepted — source=Notarized Developer ID
+spctl -a -t exec -vvv "/tmp/relcheck/Obfuskoder.app"
+```
+
 The script: archives the Release configuration → exports with the
 `developer-id` method (`Config/ExportOptions.plist`; also re-signs the
 embedded `obfuskode` helper) → submits to Apple's notary service and waits →
