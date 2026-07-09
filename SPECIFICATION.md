@@ -435,14 +435,22 @@ views above.
 
 ### 9.1 Sandboxing & distribution
 
-- **App Sandbox is enabled**, with minimal entitlements:
-  - **`com.apple.security.network.client`** — declared because a sandboxed
-    `WKWebView` requires it to launch its WebContent process, *even for local,
-    in-memory HTML*. Without it the WebContent process is denied and the preview
-    stays blank. The app makes **no actual outbound requests**: the preview loads
-    a self-contained snippet via `loadHTMLString(baseURL: nil)` with navigation
-    cancelled, and there is no other networking code (§9.2). (Set via the
+- **App Sandbox is enabled**, with minimal entitlements (see
+  `Obfuskoder/Obfuskoder.entitlements`):
+  - **`com.apple.security.network.client`** — declared for two reasons:
+    **(a)** a sandboxed `WKWebView` requires it to launch its WebContent
+    process, *even for local, in-memory HTML* (without it the WebContent
+    process is denied and the preview stays blank), and **(b)** **Sparkle**
+    uses it to check the appcast at `updates.aldosoft.com` and download
+    update assets from GitHub Releases. The preview itself makes **no
+    outbound requests**: it loads a self-contained snippet via
+    `loadHTMLString(baseURL: nil)` with navigation cancelled, and there is no
+    other app-authored networking code (§9.2). (Set via the
     `ENABLE_OUTGOING_NETWORK_CONNECTIONS` build setting.)
+  - **`com.apple.security.temporary-exception.mach-lookup.global-name`**
+    (value `$(PRODUCT_BUNDLE_IDENTIFIER)-spki`) — declared so the sandboxed
+    app can reach Sparkle's out-of-process Installer XPC service, which
+    performs the privileged steps of applying a downloaded update.
   - **`com.apple.security.files.user-selected.read-write`** — declared so
     the *Install Command Line Tool* flow (SPECIFICATION-CLI.md §6) can
     create its symlink in the folder the user picks in the open panel.
@@ -457,12 +465,16 @@ views above.
 
 ### 9.2 Privacy & security
 
-- **No outbound network requests.** The app declares the
-  `com.apple.security.network.client` entitlement *solely* because `WKWebView`
-  cannot run in the App Sandbox without it (§9.1); it makes **no actual network
-  connections** — no telemetry, analytics, crash reporting, third-party SDKs,
-  fonts, or CDNs, and the preview snippet is self-contained and loaded in-memory.
-  The no-network behavior is verifiable with a network monitor.
+- **Outbound network use is limited to Sparkle update checks.** The app
+  declares the `com.apple.security.network.client` entitlement because
+  `WKWebView` cannot run in the App Sandbox without it, and because Sparkle
+  uses it to check `updates.aldosoft.com` for new releases and download
+  update assets from GitHub Releases (§9.1). Beyond that, the app makes **no
+  other network connections** — no telemetry, analytics, crash reporting,
+  third-party SDKs, fonts, or CDNs — and the preview snippet is
+  self-contained and loaded in-memory. This is verifiable with a network
+  monitor: outbound traffic should only appear as periodic Sparkle update
+  checks, never from ordinary use of the encoder or preview.
 - User input lives in memory only, **except** saved presets and settings, which
   are written to the local sandbox container **only when the user explicitly
   saves them** and are **never transmitted**. (This is the one deliberate
