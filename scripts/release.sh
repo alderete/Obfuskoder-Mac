@@ -74,6 +74,10 @@ fi
 
 # sign_update prints e.g.: sparkle:edSignature="…" length="12345"
 SIG_ATTRS="$("$SPARKLE_BIN/sign_update" "$FINAL_ZIP")"
+if [ -z "$SIG_ATTRS" ]; then
+    echo "error: sign_update produced no signature for $FINAL_ZIP" >&2
+    exit 1
+fi
 BUILD_NUMBER="$(git rev-list --count HEAD)"
 DL_URL="https://github.com/alderete/Obfuskoder-Mac/releases/download/$VERSION/Obfuskoder-$VERSION.zip"
 PUB_DATE="$(date -R 2>/dev/null || date '+%a, %d %b %Y %H:%M:%S %z')"
@@ -101,10 +105,15 @@ cat > "$ITEM_FILE" <<ITEM
 ITEM
 
 # Insert the new item immediately after the ITEMS marker (newest first).
-awk '/<!-- ITEMS/{print; while((getline line < "'"$ITEM_FILE"'")>0) print line; close("'"$ITEM_FILE"'"); next} {print}' "$APPCAST" > "$APPCAST.tmp" && mv "$APPCAST.tmp" "$APPCAST"
+awk '/<!-- ITEMS/{print; while((getline line < "'"$ITEM_FILE"'")>0) print line; close("'"$ITEM_FILE"'"); next} {print}' "$APPCAST" > "$APPCAST.tmp"
+if ! xmllint --noout "$APPCAST.tmp"; then
+    echo "error: generated appcast is malformed; leaving $APPCAST unchanged. Inspect $APPCAST.tmp." >&2
+    rm -f "$ITEM_FILE"
+    exit 1
+fi
+mv "$APPCAST.tmp" "$APPCAST"
 rm -f "$ITEM_FILE"
-
-xmllint --noout "$APPCAST" && echo "appcast is well-formed: $APPCAST"
+echo "appcast is well-formed: $APPCAST"
 echo ""
 echo "ACTION REQUIRED: upload $APPCAST to https://updates.aldosoft.com/obfuskoder/appcast.xml"
 
