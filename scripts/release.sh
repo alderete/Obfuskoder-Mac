@@ -62,7 +62,11 @@ codesign --verify --deep --strict "$APP"
 
 mkdir -p dist
 FINAL_ZIP="dist/Obfuskoder-$VERSION.zip"
-ditto -c -k --keepParent "$APP" "$FINAL_ZIP"
+# --norsrc --noextattr keeps AppleDouble (._*) companions OUT of the archive.
+# Without them, a naive unarchiver leaves ._Sparkle/._Versions/... at the
+# embedded framework's root, breaking its code seal ("unsealed contents in an
+# embedded framework") so Gatekeeper rejects the app. (SPEC: Sparkle updater.)
+ditto -c -k --keepParent --norsrc --noextattr "$APP" "$FINAL_ZIP"
 
 echo "== Sign update & append appcast entry =="
 NOTES_FILE="${1:-}"
