@@ -25,7 +25,7 @@
 	<key>SUFeedURL</key>
 	<string>https://updates.aldosoft.com/obfuskoder/appcast.xml</string>
 	<key>SUPublicEDKey</key>
-	<string>REPLACE_WITH_BASE64_PUBLIC_KEY_FROM_generate_keys</string>
+	<string>+AMuoeLB55JqMDLJ50opdeu8dVcdPZnYDVR+5hxUfXI=</string>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUEnableAutomaticChecks</key>
