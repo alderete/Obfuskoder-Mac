@@ -5,7 +5,6 @@ struct ContentView: View {
     @Environment(AppModel.self) private var model
     @Environment(PresetStore.self) private var store
 
-    @Environment(\.undoManager) private var undoManager
     @AppStorage(SettingsKeys.debounceSeconds) private var debounce = AppConfig.defaultDebounceSeconds
     @AppStorage(SettingsKeys.fallbackMessage) private var fallback = AppConfig.defaultFallbackMessage
 
@@ -36,7 +35,7 @@ struct ContentView: View {
             showSaveSheet = true
         }
         .onReceive(NotificationCenter.default.publisher(for: .clearForm)) { _ in
-            model.clearActiveForm(undoManager: undoManager)
+            model.clearActiveForm()
         }
         .sheet(isPresented: $showSaveSheet) {
             SaveValuesSheet(store: store, payload: model.form.payload())

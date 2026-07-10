@@ -23,6 +23,24 @@ final class AppModel {
     var debounceSeconds: Double = AppConfig.defaultDebounceSeconds
     var fallbackMessage: String = AppConfig.defaultFallbackMessage
 
+    // Per-mode undo (SPEC §3: two independent, mode-scoped stacks). Each mode's
+    // fields, Clear, and Apply register on its own manager; mode switching is
+    // never undoable. @ObservationIgnored: not observed UI state.
+    @ObservationIgnored let basicUndo = UndoManager()
+    @ObservationIgnored let advancedUndo = UndoManager()
+    var activeUndoManager: UndoManager { form.mode == .basic ? basicUndo : advancedUndo }
+    @ObservationIgnored private lazy var basicRecorder = FormUndoRecorder(
+        undoManager: basicUndo,
+        get: { [weak self] in self?.form ?? FormState() },
+        set: { [weak self] in self?.form = $0 })
+    @ObservationIgnored private lazy var advancedRecorder = FormUndoRecorder(
+        undoManager: advancedUndo,
+        get: { [weak self] in self?.form ?? FormState() },
+        set: { [weak self] in self?.form = $0 })
+    private var activeRecorder: FormUndoRecorder {
+        form.mode == .basic ? basicRecorder : advancedRecorder
+    }
+
     private var encodeTask: Task<Void, Never>?
     private var copyFeedbackTask: Task<Void, Never>?
 
@@ -65,30 +83,21 @@ final class AppModel {
         return nil
     }
 
-    func clearActiveForm(undoManager: UndoManager?) {
+    func clearActiveForm() {
         guard !form.activeIsEmpty else { return }
         let previous = form
         form.clearActive()
         scheduleEncode()
-        undoManager?.registerUndo(withTarget: self) { target in
-            target.restoreForm(previous, undoManager: undoManager)
-        }
-        undoManager?.setActionName(UIStrings.clearForm)
-    }
-
-    func restoreForm(_ snapshot: FormState, undoManager: UndoManager?) {
-        let current = form
-        form = snapshot
-        scheduleEncode()
-        undoManager?.registerUndo(withTarget: self) { target in
-            target.restoreForm(current, undoManager: undoManager)
-        }
-        undoManager?.setActionName(UIStrings.clearForm)
+        activeRecorder.record(previous: previous, actionName: UIStrings.clearForm)
     }
 
     func apply(_ preset: Preset) {
-        form.apply(preset)
+        let previous = form
+        form.apply(preset)                 // may switch mode; the switch is not undone
         scheduleEncode()
+        // activeRecorder follows form.mode — which apply just set — so this records
+        // on the target mode's manager and restores that mode's prior content on undo.
+        activeRecorder.record(previous: previous, actionName: UIStrings.applySavedValues)
     }
 
     /// Copy the current snippet to the pasteboard and flash transient "Copied" feedback.
