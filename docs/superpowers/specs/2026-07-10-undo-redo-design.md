@@ -54,8 +54,11 @@ mode's fields and operations** — e.g. edit Email, edit Subject, Clear Form →
 
 ## 5. Cross-cutting defaults (native macOS)
 
-- **Granularity:** word-level coalescing within a field (the text engine's
-  native behavior) — `⌘Z` undoes a chunk, not each keystroke.
+- **Granularity:** the model records a snapshot per **edit-burst** — a new undo
+  step when typing pauses or focus leaves the field — approximating word/phrase
+  level, not per-keystroke. (The fields' native per-cell undo can't be unified
+  with the form operations; the model owns undo instead — see §8 and
+  `docs/undo-routing-findings.md`.)
 - **Redo:** symmetric `⇧⌘Z`.
 - **History lifetime:** session-only; **not persisted** across launches; no
   artificial depth cap (rely on `NSUndoManager` defaults).
@@ -85,6 +88,16 @@ The **Edit ▸ Undo / Redo** items reflect the **active mode's** stack:
   first responder and reveals (selects/scrolls to) the change.
 
 ## 8. Implementation constraint (hard — do not repeat FIX-3)
+
+**Resolved mechanism (spike 2026-07-10 — see `docs/undo-routing-findings.md`):**
+**model-owned snapshot undo.** `NSTextField`'s native editing-undo lives in a
+private `NSCellUndoManager` that can't be redirected; `NSTextView`'s delegate
+*can* route, but we don't rely on it. Instead the model records `FormState`
+snapshots on a per-mode `NSUndoManager` for text edits (coalesced per edit-burst)
++ Clear + Apply. `NSTextView.allowsUndo = false`; the field editors' native undo
+is bypassed by custom `⌘Z`/`⇧⌘Z` Edit-menu commands that call the model manager
+directly (menu key-equivalents are checked before the responder chain, so the
+field editor never handles them). This is what also makes `⌘Z` work at all.
 
 The FIX-3 attempt crashed and produced the "Clear gets skipped by undo" bug
 because it mixed **two uncoordinated undo managers**: each text field's default
