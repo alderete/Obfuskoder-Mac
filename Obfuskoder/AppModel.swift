@@ -50,7 +50,18 @@ final class AppModel {
     private(set) var canRedo = false
     private(set) var undoTitle = ""
     private(set) var redoTitle = ""
-    @ObservationIgnored private var editBurstBaseline: FormState?
+    // Two-level text-edit undo. Within a field session, typing pauses append to
+    // `history` and Cmd-Z steps back through it (undo WITHIN the field). On
+    // leaving the field the whole session collapses into ONE step on the mode
+    // manager (cross-field undo is one step per field). history[0] is the
+    // focus-in baseline; `index` is the current position; entries past `index`
+    // are the redo future.
+    @ObservationIgnored private var history: [FormState] = []
+    @ObservationIgnored private var index = 0
+    @ObservationIgnored private var editBurstIdle: Task<Void, Never>?
+    private var inSession: Bool { !history.isEmpty }
+    private var sessionCanUndo: Bool { inSession && (index > 0 || form != history[index]) }
+    private var sessionCanRedo: Bool { inSession && form == history[index] && index < history.count - 1 }
 
     init() {
         for manager in [basicUndo, advancedUndo] {
@@ -132,33 +143,90 @@ final class AppModel {
         refreshUndoState()
     }
 
-    func undo() { activeUndoManager.undo(); scheduleEncode(); refreshUndoState() }
-    func redo() { activeUndoManager.redo(); scheduleEncode(); refreshUndoState() }
+    func undo() {
+        if sessionCanUndo {                       // within-field: step back through history
+            editBurstIdle?.cancel(); editBurstIdle = nil
+            appendCheckpoint()                    // fold any un-paused typing into a step first
+            index -= 1
+            restoreSlice(history[index])
+            scheduleEncode(); refreshUndoState()
+            return
+        }
+        endEditBurst()                            // else: collapse session, undo on the mode manager
+        activeUndoManager.undo(); scheduleEncode(); refreshUndoState()
+    }
+
+    func redo() {
+        if sessionCanRedo {                       // within-field redo
+            index += 1
+            restoreSlice(history[index])
+            scheduleEncode(); refreshUndoState()
+            return
+        }
+        endEditBurst()
+        activeUndoManager.redo(); scheduleEncode(); refreshUndoState()
+    }
 
     /// Mirror the active mode's manager into the observable Edit-menu state.
     func refreshUndoState() {
         let m = activeUndoManager
-        canUndo = m.canUndo
-        canRedo = m.canRedo
-        undoTitle = m.undoMenuItemTitle
-        redoTitle = m.redoMenuItemTitle
+        canUndo = sessionCanUndo || m.canUndo
+        canRedo = sessionCanRedo || m.canRedo
+        undoTitle = sessionCanUndo ? UIStrings.undoTyping : m.undoMenuItemTitle
+        redoTitle = sessionCanRedo ? UIStrings.redoTyping : m.redoMenuItemTitle
     }
 
-    /// Text-edit undo is coalesced per editing session: capture the pre-edit
-    /// snapshot when a field starts editing…
+    /// Begin a per-field editing session (focus-in), capturing the pre-edit
+    /// baseline as history[0]. Idempotent within a session.
     func beginEditBurst() {
-        if editBurstBaseline == nil { editBurstBaseline = form }
+        guard history.isEmpty else { return }
+        history = [form]
+        index = 0
     }
 
-    /// …and record one undo step when it ends, if the content actually changed.
+    /// Each keystroke re-arms an idle timer; a typing PAUSE records a within-field
+    /// checkpoint (Cmd-Z can step back to it) — this gives undo inside the
+    /// single-field Advanced editor, where you never leave to commit.
+    func noteEdit() {
+        if history.isEmpty { history = [form]; index = 0 }  // safety if focus-in was missed
+        editBurstIdle?.cancel()
+        editBurstIdle = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(700))
+            if Task.isCancelled { return }
+            self?.checkpoint()
+        }
+    }
+
+    private func checkpoint() { appendCheckpoint(); refreshUndoState() }
+
+    private func appendCheckpoint() {
+        guard inSession, form != history[index] else { return }
+        if index < history.count - 1 { history.removeLast(history.count - 1 - index) }  // drop redo future
+        history.append(form)
+        index += 1
+    }
+
+    /// Leaving the field (focus-out) collapses the whole session into ONE step on
+    /// the mode manager, so cross-field undo is one step per field.
     func endEditBurst() {
-        guard let baseline = editBurstBaseline else { return }
-        editBurstBaseline = nil
+        editBurstIdle?.cancel()
+        editBurstIdle = nil
+        guard !history.isEmpty else { return }
+        let baseline = history[0]
+        history = []
+        index = 0
         guard baseline != form else { return }
-        // Record on the manager for the mode the edit STARTED in.
         let recorder = baseline.mode == .basic ? basicRecorder : advancedRecorder
         recorder.record(previous: baseline, actionName: UIStrings.typing)
         refreshUndoState()
+    }
+
+    /// Restore only the active mode's content slice, matching FormUndoRecorder.
+    private func restoreSlice(_ snapshot: FormState) {
+        switch form.mode {
+        case .basic: form.basic = snapshot.basic
+        case .advanced: form.advanced = snapshot.advanced
+        }
     }
 
     /// Copy the current snippet to the pasteboard and flash transient "Copied" feedback.

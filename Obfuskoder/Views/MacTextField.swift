@@ -67,6 +67,7 @@ struct MacTextField: NSViewRepresentable {
             if selector == #selector(NSResponder.insertTab(_:)),
                control.stringValue.trimmingCharacters(in: .whitespaces).isEmpty,
                let completion = parent.tabCompletion?(), !completion.isEmpty {
+                parent.onEditBegin()   // capture the session baseline BEFORE the completion fills the field
                 textView.string = completion
                 textView.selectedRange = NSRange(location: (completion as NSString).length, length: 0)
                 parent.text = completion

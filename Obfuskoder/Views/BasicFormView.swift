@@ -42,6 +42,7 @@ struct BasicFormView: View {
             }
             MacTextField(text: text, placeholder: placeholder,
                          font: .appFieldFont, tabCompletion: tabCompletion,
+                         onChange: { model.noteEdit() },
                          onEditBegin: { model.beginEditBurst() },
                          onEditEnd: { model.endEditBurst() })
                 .accessibilityLabel(Text(label))

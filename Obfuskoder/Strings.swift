@@ -54,6 +54,8 @@ enum UIStrings {
     static let clearForm = String(localized: "Clear Form")
     static let applySavedValues = String(localized: "Apply Saved Values")
     static let typing = String(localized: "Typing")
+    static let undoTyping = String(localized: "Undo Typing")
+    static let redoTyping = String(localized: "Redo Typing")
     static let modeLabel = String(localized: "Input mode")
     static let showDecodedSourceMenu = String(localized: "Show Decoded Source")
     static let hideDecodedSourceMenu = String(localized: "Hide Decoded Source")

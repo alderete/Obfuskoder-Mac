@@ -11,6 +11,7 @@ struct AdvancedFormView: View {
                 FieldHint(fieldLabel: UIStrings.advancedLabel, hint: UIStrings.advancedHint)
             }
             MacTextEditor(text: $model.form.advanced,
+                          onChange: { model.noteEdit() },
                           onEditBegin: { model.beginEditBurst() },
                           onEditEnd: { model.endEditBurst() })
                 .frame(minHeight: 180)
