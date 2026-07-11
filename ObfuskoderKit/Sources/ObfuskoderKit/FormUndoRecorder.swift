@@ -34,11 +34,15 @@ public final class FormUndoRecorder {
         undoManager.setActionName(actionName)
     }
 
-    /// Restore a snapshot's content while preserving the current mode, so undo
-    /// never switches modes.
+    /// Restore ONLY the active mode's content from the snapshot, preserving the
+    /// current mode and the *other* mode's content. Undo never switches modes,
+    /// and a per-mode manager never touches the other mode's data (SPEC §3).
     private func restore(content snapshot: FormState) {
-        var next = snapshot
-        next.mode = getForm().mode
+        var next = getForm()
+        switch next.mode {
+        case .basic:    next.basic = snapshot.basic
+        case .advanced: next.advanced = snapshot.advanced
+        }
         setForm(next)
     }
 }

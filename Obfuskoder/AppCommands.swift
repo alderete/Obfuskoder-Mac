@@ -16,6 +16,17 @@ struct AppCommands: Commands {
         CommandGroup(replacing: .appInfo) {
             Button(UIStrings.aboutMenuItem) { AboutPanel.show() }
         }
+        // Edit ▸ Undo/Redo — mode-scoped, targeting the model's active manager
+        // (bypasses the field editors' native, un-unifiable undo — see
+        // docs/undo-routing-findings.md).
+        CommandGroup(replacing: .undoRedo) {
+            Button(model.undoTitle.isEmpty ? "Undo" : model.undoTitle) { model.undo() }
+                .keyboardShortcut("z", modifiers: .command)
+                .disabled(!model.canUndo)
+            Button(model.redoTitle.isEmpty ? "Redo" : model.redoTitle) { model.redo() }
+                .keyboardShortcut("z", modifiers: [.command, .shift])
+                .disabled(!model.canRedo)
+        }
         // Obfuskoder ▸ Check for Updates… — standard spot, just below About.
         CommandGroup(after: .appInfo) {
             CheckForUpdatesView(updater: softwareUpdater)

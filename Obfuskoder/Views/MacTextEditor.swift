@@ -5,6 +5,8 @@ import AppKit
 struct MacTextEditor: NSViewRepresentable {
     @Binding var text: String
     var onChange: () -> Void = {}
+    var onEditBegin: () -> Void = {}
+    var onEditEnd: () -> Void = {}
 
     func makeNSView(context: Context) -> NSScrollView {
         let scroll = NSTextView.scrollableTextView()
@@ -23,7 +25,9 @@ struct MacTextEditor: NSViewRepresentable {
         textView.smartInsertDeleteEnabled = false
         textView.isContinuousSpellCheckingEnabled = false
         textView.isGrammarCheckingEnabled = false
-        textView.allowsUndo = true
+        // Undo is model-owned (per-mode snapshots); native NSTextView undo would
+        // double-register on a manager we don't drive. See undo-routing-findings.
+        textView.allowsUndo = false
         textView.selectedTextAttributes = [.backgroundColor: NSColor.appTextSelection]
         textView.textContainerInset = NSSize(width: 4, height: 6)
         return scroll
@@ -44,5 +48,8 @@ struct MacTextEditor: NSViewRepresentable {
             parent.text = textView.string
             parent.onChange()
         }
+
+        func textDidBeginEditing(_ notification: Notification) { parent.onEditBegin() }
+        func textDidEndEditing(_ notification: Notification) { parent.onEditEnd() }
     }
 }

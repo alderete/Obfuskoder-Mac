@@ -54,6 +54,27 @@ import ObfuskoderKit
     #expect(form.advanced == "X")                // advanced content preserved
 }
 
+// A mode's undo must restore only that mode's content — never clobber the other
+// mode's data (SPEC §3: independent, mode-scoped stacks).
+@MainActor
+@Test func undoRestoresOnlyActiveModeContent() {
+    var form = FormState(mode: .basic, basic: BasicFields(email: "e@x.com"), advanced: "<p>keep</p>")
+    let um = UndoManager()
+    um.groupsByEvent = false
+    let rec = FormUndoRecorder(undoManager: um, get: { form }, set: { form = $0 })
+
+    let previous = form
+    um.beginUndoGrouping()
+    form.basic.email = "changed@x.com"
+    rec.record(previous: previous, actionName: "Typing")
+    um.endUndoGrouping()
+    form.advanced = "<p>edited independently</p>"   // advanced changes after the basic edit
+
+    um.undo()
+    #expect(form.basic.email == "e@x.com")                 // basic restored
+    #expect(form.advanced == "<p>edited independently</p>") // advanced NOT clobbered
+}
+
 @MainActor
 @Test func recordSetsTheActionName() {
     var form = FormState(mode: .basic, basic: BasicFields(email: "a@b.com"))

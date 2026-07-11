@@ -12,6 +12,10 @@ struct MacTextField: NSViewRepresentable {
     /// (ghost-text auto-completion); a second Tab then advances as usual.
     var tabCompletion: (() -> String)?
     var onChange: () -> Void = {}
+    /// Editing session boundaries — used to coalesce undo into one step per
+    /// field-editing session.
+    var onEditBegin: () -> Void = {}
+    var onEditEnd: () -> Void = {}
 
     func makeNSView(context: Context) -> NSTextField {
         let field = NoSubstitutionTextField()
@@ -52,6 +56,9 @@ struct MacTextField: NSViewRepresentable {
             parent.text = field.stringValue
             parent.onChange()
         }
+
+        func controlTextDidBeginEditing(_ obj: Notification) { parent.onEditBegin() }
+        func controlTextDidEndEditing(_ obj: Notification) { parent.onEditEnd() }
 
         func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
             // Tab in an empty field accepts the ghost-text completion and

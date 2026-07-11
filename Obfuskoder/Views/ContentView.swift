@@ -29,6 +29,7 @@ struct ContentView: View {
         }
         .onAppear { syncSettings() }
         .onChange(of: model.form) { model.scheduleEncode() }
+        .onChange(of: model.form.mode) { model.refreshUndoState() }
         .onChange(of: debounce) { syncSettings() }
         .onChange(of: fallback) { syncSettings() }
         .onReceive(NotificationCenter.default.publisher(for: .saveCurrentValues)) { _ in

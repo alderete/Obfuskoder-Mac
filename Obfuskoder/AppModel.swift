@@ -41,6 +41,34 @@ final class AppModel {
         form.mode == .basic ? basicRecorder : advancedRecorder
     }
 
+    // Observable mirror of the active mode's manager, so the Edit menu's
+    // Undo/Redo titles + enabled state track it. Refreshed via NSUndoManager
+    // notifications (which fire when event-grouped actions close) plus explicit
+    // refreshes after undo/redo and on mode change.
+    @ObservationIgnored private var undoObservers: [NSObjectProtocol] = []
+    private(set) var canUndo = false
+    private(set) var canRedo = false
+    private(set) var undoTitle = ""
+    private(set) var redoTitle = ""
+    @ObservationIgnored private var editBurstBaseline: FormState?
+
+    init() {
+        for manager in [basicUndo, advancedUndo] {
+            for name: NSNotification.Name in [.NSUndoManagerDidCloseUndoGroup,
+                                              .NSUndoManagerDidUndoChange,
+                                              .NSUndoManagerDidRedoChange] {
+                undoObservers.append(NotificationCenter.default.addObserver(
+                    forName: name, object: manager, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.refreshUndoState() }
+                })
+            }
+        }
+        refreshUndoState()
+    }
+    // No deinit cleanup needed: AppModel lives for the whole app session, and the
+    // observers capture [weak self]. (A nonisolated deinit can't touch the
+    // MainActor-isolated observer tokens under Swift 6 anyway.)
+
     private var encodeTask: Task<Void, Never>?
     private var copyFeedbackTask: Task<Void, Never>?
 
@@ -84,20 +112,53 @@ final class AppModel {
     }
 
     func clearActiveForm() {
+        endEditBurst()          // finalize any in-progress typing as its own step first
         guard !form.activeIsEmpty else { return }
         let previous = form
         form.clearActive()
         scheduleEncode()
         activeRecorder.record(previous: previous, actionName: UIStrings.clearForm)
+        refreshUndoState()
     }
 
     func apply(_ preset: Preset) {
+        endEditBurst()          // finalize any in-progress typing as its own step first
         let previous = form
         form.apply(preset)                 // may switch mode; the switch is not undone
         scheduleEncode()
         // activeRecorder follows form.mode — which apply just set — so this records
         // on the target mode's manager and restores that mode's prior content on undo.
         activeRecorder.record(previous: previous, actionName: UIStrings.applySavedValues)
+        refreshUndoState()
+    }
+
+    func undo() { activeUndoManager.undo(); scheduleEncode(); refreshUndoState() }
+    func redo() { activeUndoManager.redo(); scheduleEncode(); refreshUndoState() }
+
+    /// Mirror the active mode's manager into the observable Edit-menu state.
+    func refreshUndoState() {
+        let m = activeUndoManager
+        canUndo = m.canUndo
+        canRedo = m.canRedo
+        undoTitle = m.undoMenuItemTitle
+        redoTitle = m.redoMenuItemTitle
+    }
+
+    /// Text-edit undo is coalesced per editing session: capture the pre-edit
+    /// snapshot when a field starts editing…
+    func beginEditBurst() {
+        if editBurstBaseline == nil { editBurstBaseline = form }
+    }
+
+    /// …and record one undo step when it ends, if the content actually changed.
+    func endEditBurst() {
+        guard let baseline = editBurstBaseline else { return }
+        editBurstBaseline = nil
+        guard baseline != form else { return }
+        // Record on the manager for the mode the edit STARTED in.
+        let recorder = baseline.mode == .basic ? basicRecorder : advancedRecorder
+        recorder.record(previous: baseline, actionName: UIStrings.typing)
+        refreshUndoState()
     }
 
     /// Copy the current snippet to the pasteboard and flash transient "Copied" feedback.

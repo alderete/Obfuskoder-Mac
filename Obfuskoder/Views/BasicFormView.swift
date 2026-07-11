@@ -41,7 +41,9 @@ struct BasicFormView: View {
                 FieldHint(fieldLabel: label, hint: hint)
             }
             MacTextField(text: text, placeholder: placeholder,
-                         font: .appFieldFont, tabCompletion: tabCompletion)
+                         font: .appFieldFont, tabCompletion: tabCompletion,
+                         onEditBegin: { model.beginEditBurst() },
+                         onEditEnd: { model.endEditBurst() })
                 .accessibilityLabel(Text(label))
         }
     }
