@@ -2,11 +2,11 @@
 
 A reference for [Obfuskoder for macOS](SPECIFICATION.md). This captures the
 standard we hold the app to, so "be a real Mac app" means something concrete and
-checkable rather than a vibe.
+checkable, rather than a vibe.
 
 ## The phrase
 
-The term comes from **John Gruber** (Daring Fireball, 2020), riffing on a
+The term was popularized by **John Gruber** (Daring Fireball, 2020), riffing on a
 developer's plea for a *"Mac-ass Mac app."* Gruber's framing:
 
 > *"A Mac-assed Mac app."*
@@ -120,6 +120,9 @@ software that belongs there.
 
 ## Further reading
 
-- John Gruber, *"A Mac-assed Mac app"* — Daring Fireball (2020).
+- John Gruber, [_Mac-assed Mac Apps_](https://daringfireball.net/linked/2020/03/20/mac-assed-mac-apps) — Daring Fireball (2020).
+- Brent Simmons, https://inessential.com/2020/03/19/proxyman.html
+- Paulo Andrade, [_Using SwiftUI to Build a Mac-assed App in 2026_](https://pfandrade.me/blog/mac-assed-swiftui-app/)
+- https://github.com/bartreardon/skills/tree/main/mac-arsed-mac-app
 - Apple **Human Interface Guidelines**, macOS — the canonical source for the
   conventions summarized above.
