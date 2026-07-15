@@ -9,6 +9,7 @@ extension Notification.Name {
 struct AppCommands: Commands {
     let model: AppModel
     let softwareUpdater: SoftwareUpdater
+    let router: UndoRouter
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -16,16 +17,15 @@ struct AppCommands: Commands {
         CommandGroup(replacing: .appInfo) {
             Button(UIStrings.aboutMenuItem) { AboutPanel.show() }
         }
-        // Edit ▸ Undo/Redo — mode-scoped, targeting the model's active manager
-        // (bypasses the field editors' native, un-unifiable undo — see
-        // docs/undo-routing-findings.md).
+        // Edit ▸ Undo/Redo — routed to the frontmost editing context by UndoRouter
+        // (main-form model undo, an auxiliary field's native undo, or disabled).
         CommandGroup(replacing: .undoRedo) {
-            Button(model.undoTitle.isEmpty ? "Undo" : model.undoTitle) { model.undo() }
+            Button(router.undoTitle) { router.performUndo() }
                 .keyboardShortcut("z", modifiers: .command)
-                .disabled(!model.canUndo)
-            Button(model.redoTitle.isEmpty ? "Redo" : model.redoTitle) { model.redo() }
+                .disabled(!router.canUndo)
+            Button(router.redoTitle) { router.performRedo() }
                 .keyboardShortcut("z", modifiers: [.command, .shift])
-                .disabled(!model.canRedo)
+                .disabled(!router.canRedo)
         }
         // Obfuskoder ▸ Check for Updates… — standard spot, just below About.
         CommandGroup(after: .appInfo) {
@@ -90,9 +90,11 @@ struct AppCommands: Commands {
 
     /// A Bool binding that is `on` for the given mode; setting it on selects
     /// that mode (setting it off does nothing — radio, not independent toggles).
+    /// Routes through `switchMode` so the source mode's open text group closes
+    /// first (spec §4).
     private func modeBinding(_ mode: FormMode) -> Binding<Bool> {
         Binding(
             get: { model.form.mode == mode },
-            set: { if $0 { model.form.mode = mode; model.scheduleEncode() } })
+            set: { if $0 { model.switchMode(to: mode) } })
     }
 }

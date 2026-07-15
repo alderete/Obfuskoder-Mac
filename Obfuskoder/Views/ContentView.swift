@@ -4,6 +4,7 @@ import ObfuskoderKit
 struct ContentView: View {
     @Environment(AppModel.self) private var model
     @Environment(PresetStore.self) private var store
+    @Environment(UndoRouter.self) private var router
 
     @AppStorage(SettingsKeys.debounceSeconds) private var debounce = AppConfig.defaultDebounceSeconds
     @AppStorage(SettingsKeys.fallbackMessage) private var fallback = AppConfig.defaultFallbackMessage
@@ -11,7 +12,6 @@ struct ContentView: View {
     @State private var showSaveSheet = false
 
     var body: some View {
-        @Bindable var model = model
         HSplitView {
             InputPane(model: model)
                 // With labels above the fields, content compresses gracefully;
@@ -21,15 +21,17 @@ struct ContentView: View {
             ResultPane(model: model)
                 .frame(minWidth: 320)
         }
+        .background(WindowAccessor { router.mainWindow = $0 })
         .toolbar {
             ToolbarItem(placement: .principal) {
-                ModePicker(mode: $model.form.mode)
+                // Route through switchMode so the source mode's open text group
+                // closes before the destination history becomes active (§4).
+                ModePicker(mode: model.form.mode, onSelect: { model.switchMode(to: $0) })
                     .fixedSize()
             }
         }
         .onAppear { syncSettings() }
         .onChange(of: model.form) { model.scheduleEncode() }
-        .onChange(of: model.form.mode) { model.refreshUndoState() }
         .onChange(of: debounce) { syncSettings() }
         .onChange(of: fallback) { syncSettings() }
         .onReceive(NotificationCenter.default.publisher(for: .saveCurrentValues)) { _ in

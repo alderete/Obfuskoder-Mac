@@ -5,19 +5,27 @@ import ObfuskoderKit
 struct ObfuskoderApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
-    @State private var model = AppModel()
+    @State private var model: AppModel
+    @State private var undoRouter: UndoRouter
     @State private var store = PresetStore(fileURL: ObfuskoderApp.presetsURL())
     @State private var softwareUpdater = SoftwareUpdater()
+
+    init() {
+        let model = AppModel()
+        _model = State(initialValue: model)
+        _undoRouter = State(initialValue: UndoRouter(model: model))
+    }
 
     var body: some Scene {
         Window(UIStrings.appName, id: "main") {
             ContentView()
                 .environment(model)
                 .environment(store)
+                .environment(undoRouter)
                 .frame(minWidth: 720, minHeight: 420)
         }
         .windowResizability(.contentMinSize)
-        .commands { AppCommands(model: model, softwareUpdater: softwareUpdater) }
+        .commands { AppCommands(model: model, softwareUpdater: softwareUpdater, router: undoRouter) }
 
         Settings {
             SettingsView()

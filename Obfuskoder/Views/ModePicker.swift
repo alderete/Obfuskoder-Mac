@@ -9,7 +9,8 @@ import ObfuskoderKit
 /// selected trait. (`accessibilityRepresentation` with a Picker was tried and
 /// produced an unlabeled tab group — worse than this.)
 struct ModePicker: View {
-    @Binding var mode: FormMode
+    let mode: FormMode
+    let onSelect: (FormMode) -> Void
     @Namespace private var selection
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -31,7 +32,7 @@ struct ModePicker: View {
 
     private func segment(_ title: String, _ value: FormMode) -> some View {
         Button {
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) { mode = value }
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) { onSelect(value) }
         } label: {
             Text(title)
                 .padding(.horizontal, 14)
