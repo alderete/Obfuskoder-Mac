@@ -70,6 +70,13 @@ struct MacTextField: NSViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
+    /// Tear down the selection observer if the view is removed mid-edit (the one
+    /// case `controlTextDidEndEditing` wouldn't fire). MainActor-isolated, so it
+    /// can touch the coordinator's non-Sendable token — a `deinit` cannot.
+    static func dismantleNSView(_ nsView: NSTextField, coordinator: Coordinator) {
+        coordinator.stopObservingSelection()
+    }
+
     final class Coordinator: NSObject, NSTextFieldDelegate {
         var parent: MacTextField
         private var lastText = ""
@@ -125,8 +132,12 @@ struct MacTextField: NSViewRepresentable {
         }
 
         func controlTextDidEndEditing(_ obj: Notification) {
-            if let t = selectionObserver { NotificationCenter.default.removeObserver(t); selectionObserver = nil }
+            stopObservingSelection()
             parent.onBlur()
+        }
+
+        func stopObservingSelection() {
+            if let t = selectionObserver { NotificationCenter.default.removeObserver(t); selectionObserver = nil }
         }
 
         /// Report pure caret/selection moves. The `string == lastText` guard skips

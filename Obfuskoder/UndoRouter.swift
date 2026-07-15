@@ -23,14 +23,20 @@ final class UndoRouter {
 
     init(model: AppModel) {
         self.model = model
-        // Refresh the menu on the two kinds of context change that carry no
-        // observable signal: key-window switches (sheets, Settings/Help) and
-        // field-focus switches within a window (e.g. Settings field ↔ slider),
-        // which change which editing context Undo/Redo should target (§2/§10.7).
+        // Refresh the menu on context changes that carry no observable signal:
+        // key-window switches (sheets, Settings/Help), field-focus switches
+        // within a window (Settings field ↔ slider), and edits inside an
+        // AUXILIARY field — whose native undo state (canUndo/title) lives on the
+        // field editor's own manager, not on the observable model, so typing
+        // there must bump `tick` or the Edit menu stays stale and its ⌘Z inert
+        // (§2/§10.7/§12.1). The main-form path refreshes via `model` and is
+        // unaffected by the extra ticks.
         let names: [NSNotification.Name] = [
             NSWindow.didBecomeKeyNotification, NSWindow.didResignKeyNotification,
             NSControl.textDidBeginEditingNotification, NSControl.textDidEndEditingNotification,
+            NSControl.textDidChangeNotification,
             NSText.didBeginEditingNotification, NSText.didEndEditingNotification,
+            NSText.didChangeNotification,
         ]
         for name in names {
             observers.append(NotificationCenter.default.addObserver(
