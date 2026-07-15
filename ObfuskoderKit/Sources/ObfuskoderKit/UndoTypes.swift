@@ -57,6 +57,44 @@ public struct RawTextEdit: Sendable {
     }
 }
 
+/// A classified edit ready for grouping.
+public struct TextEditEvent: Sendable {
+    public var field: FieldID
+    public var kind: EditKind
+    public var before: String
+    public var beforeSelection: TextSelection
+    public var after: String
+    public var afterSelection: TextSelection
+    public init(field: FieldID, kind: EditKind, before: String,
+                beforeSelection: TextSelection, after: String, afterSelection: TextSelection) {
+        self.field = field
+        self.kind = kind
+        self.before = before
+        self.beforeSelection = beforeSelection
+        self.after = after
+        self.afterSelection = afterSelection
+    }
+}
+
+/// A closed, net-changing group ready to register as one undo action.
+public struct CommittedEdit: Equatable, Sendable {
+    public var field: FieldID
+    public var kind: EditKind
+    public var before: String
+    public var beforeSelection: TextSelection
+    public var after: String
+    public var afterSelection: TextSelection
+    public init(field: FieldID, kind: EditKind, before: String,
+                beforeSelection: TextSelection, after: String, afterSelection: TextSelection) {
+        self.field = field
+        self.kind = kind
+        self.before = before
+        self.beforeSelection = beforeSelection
+        self.after = after
+        self.afterSelection = afterSelection
+    }
+}
+
 extension FormState {
     /// Read/write one field's text by identity, so undo records stay generic.
     public subscript(field: FieldID) -> String {
