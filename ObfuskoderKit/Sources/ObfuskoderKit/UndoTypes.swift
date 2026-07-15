@@ -76,6 +76,16 @@ public struct TextEditEvent: Sendable {
     }
 }
 
+/// Where a restore should place first responder + caret/selection (spec §7/§8).
+public struct RestoreTarget: Equatable, Sendable {
+    public var field: FieldID
+    public var selection: TextSelection
+    public init(field: FieldID, selection: TextSelection) {
+        self.field = field
+        self.selection = selection
+    }
+}
+
 /// A closed, net-changing group ready to register as one undo action.
 public struct CommittedEdit: Equatable, Sendable {
     public var field: FieldID
