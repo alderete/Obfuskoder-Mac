@@ -20,19 +20,19 @@ private final class Sink {
     sink.form.basic.email = "changed@b.com"
     um.beginUndoGrouping()
     rec.record(mode: .basic, before: before, after: sink.form, name: "Typing",
-               undoFocus: RestoreTarget(field: .email, selection: TextSelection(location: 1)),
-               redoFocus: RestoreTarget(field: .email, selection: TextSelection(location: 13)))
+               undoFocus: RestoreTarget(field: .email, selection: EditSelection(location: 1)),
+               redoFocus: RestoreTarget(field: .email, selection: EditSelection(location: 13)))
     um.endUndoGrouping()
     #expect(um.undoActionName == "Typing")
 
     um.undo()
     #expect(sink.form.basic.email == "a@b.com")
     #expect(sink.form.advanced == "<keep>")                       // other mode untouched
-    #expect(sink.lastFocus == RestoreTarget(field: .email, selection: TextSelection(location: 1)))
+    #expect(sink.lastFocus == RestoreTarget(field: .email, selection: EditSelection(location: 1)))
 
     um.redo()
     #expect(sink.form.basic.email == "changed@b.com")
-    #expect(sink.lastFocus?.selection == TextSelection(location: 13))
+    #expect(sink.lastFocus?.selection == EditSelection(location: 13))
 }
 
 // Applying a preset can switch mode; undo restores the destination mode's prior
@@ -47,8 +47,8 @@ private final class Sink {
     sink.form.apply(Preset(name: "P", payload: .basic(BasicFields(email: "p@x.com"))))
     um.beginUndoGrouping()
     rec.record(mode: .basic, before: before, after: sink.form, name: "Apply “P”",
-               undoFocus: RestoreTarget(field: .email, selection: TextSelection(location: 0)),
-               redoFocus: RestoreTarget(field: .email, selection: TextSelection(location: 0)))
+               undoFocus: RestoreTarget(field: .email, selection: EditSelection(location: 0)),
+               redoFocus: RestoreTarget(field: .email, selection: EditSelection(location: 0)))
     um.endUndoGrouping()
     #expect(sink.form.mode == .basic && sink.form.basic.email == "p@x.com")
 

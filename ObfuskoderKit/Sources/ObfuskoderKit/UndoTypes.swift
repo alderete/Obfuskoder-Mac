@@ -2,7 +2,7 @@ import Foundation
 
 /// A caret (length 0) or ranged selection, in UTF-16 offsets to match AppKit's
 /// `NSRange`.
-public struct TextSelection: Equatable, Sendable {
+public struct EditSelection: Equatable, Sendable {
     public var location: Int
     public var length: Int
     public init(location: Int, length: Int = 0) {
@@ -42,12 +42,12 @@ public enum EditCommand: Sendable {
 /// Raw before/after captured by a view before classification.
 public struct RawTextEdit: Sendable {
     public var before: String
-    public var beforeSelection: TextSelection
+    public var beforeSelection: EditSelection
     public var after: String
-    public var afterSelection: TextSelection
+    public var afterSelection: EditSelection
     public var command: EditCommand?
-    public init(before: String, beforeSelection: TextSelection,
-                after: String, afterSelection: TextSelection,
+    public init(before: String, beforeSelection: EditSelection,
+                after: String, afterSelection: EditSelection,
                 command: EditCommand? = nil) {
         self.before = before
         self.beforeSelection = beforeSelection
@@ -62,11 +62,11 @@ public struct TextEditEvent: Sendable {
     public var field: FieldID
     public var kind: EditKind
     public var before: String
-    public var beforeSelection: TextSelection
+    public var beforeSelection: EditSelection
     public var after: String
-    public var afterSelection: TextSelection
+    public var afterSelection: EditSelection
     public init(field: FieldID, kind: EditKind, before: String,
-                beforeSelection: TextSelection, after: String, afterSelection: TextSelection) {
+                beforeSelection: EditSelection, after: String, afterSelection: EditSelection) {
         self.field = field
         self.kind = kind
         self.before = before
@@ -79,8 +79,8 @@ public struct TextEditEvent: Sendable {
 /// Where a restore should place first responder + caret/selection (spec §7/§8).
 public struct RestoreTarget: Equatable, Sendable {
     public var field: FieldID
-    public var selection: TextSelection
-    public init(field: FieldID, selection: TextSelection) {
+    public var selection: EditSelection
+    public init(field: FieldID, selection: EditSelection) {
         self.field = field
         self.selection = selection
     }
@@ -91,11 +91,11 @@ public struct CommittedEdit: Equatable, Sendable {
     public var field: FieldID
     public var kind: EditKind
     public var before: String
-    public var beforeSelection: TextSelection
+    public var beforeSelection: EditSelection
     public var after: String
-    public var afterSelection: TextSelection
+    public var afterSelection: EditSelection
     public init(field: FieldID, kind: EditKind, before: String,
-                beforeSelection: TextSelection, after: String, afterSelection: TextSelection) {
+                beforeSelection: EditSelection, after: String, afterSelection: EditSelection) {
         self.field = field
         self.kind = kind
         self.before = before

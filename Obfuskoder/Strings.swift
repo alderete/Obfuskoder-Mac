@@ -52,10 +52,16 @@ enum UIStrings {
     static let saveCurrentValues = String(localized: "Save Current Values…")
     static let manageSavedValues = String(localized: "Manage Saved Values…")
     static let clearForm = String(localized: "Clear Form")
-    static let applySavedValues = String(localized: "Apply Saved Values")
-    static let typing = String(localized: "Typing")
-    static let undoTyping = String(localized: "Undo Typing")
-    static let redoTyping = String(localized: "Redo Typing")
+    // Undo/redo action names (spec §10). The "Undo "/"Redo " prefix is composed
+    // by UndoManager.undoMenuTitle(forUndoActionName:), so store only bare names.
+    // Clear Form's action name reuses `clearForm` above.
+    static let undoTyping = String(localized: "Typing")
+    static let undoDelete = String(localized: "Delete")
+    static let undoCut = String(localized: "Cut")
+    static let undoPaste = String(localized: "Paste")
+    static let undoReplace = String(localized: "Replace")
+    static let undoCompleteLinkText = String(localized: "Complete Link Text")
+    static func undoApply(_ name: String) -> String { String(localized: "Apply “\(name)”") }
     static let modeLabel = String(localized: "Input mode")
     static let showDecodedSourceMenu = String(localized: "Show Decoded Source")
     static let hideDecodedSourceMenu = String(localized: "Hide Decoded Source")

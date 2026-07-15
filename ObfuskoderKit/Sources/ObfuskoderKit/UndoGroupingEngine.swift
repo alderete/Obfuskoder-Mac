@@ -11,9 +11,9 @@ public struct UndoGroupingEngine: Sendable {
         var field: FieldID
         var kind: EditKind
         var before: String
-        var beforeSelection: TextSelection
+        var beforeSelection: EditSelection
         var after: String
-        var afterSelection: TextSelection
+        var afterSelection: EditSelection
     }
     private var open: OpenGroup?
 

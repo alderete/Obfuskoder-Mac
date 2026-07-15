@@ -26,7 +26,7 @@ struct SavedValuesBar: View {
                 if !presets.isEmpty {
                     Divider()
                     ForEach(presets.prefix(Self.menuPresetLimit)) { preset in
-                        Button(preset.name) { model.apply(preset) }
+                        Button(preset.name) { model.apply(preset, name: preset.name) }
                     }
                     if presets.count > Self.menuPresetLimit {
                         Button(UIStrings.additionalItems(count: presets.count - Self.menuPresetLimit)) {

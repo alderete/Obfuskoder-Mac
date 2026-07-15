@@ -2,8 +2,8 @@ import Foundation
 
 /// Classify a raw edit into a semantic `EditKind`. An explicit command hint from
 /// the capture layer always wins; otherwise infer from the before/after diff.
-public func classifyEdit(before: String, beforeSelection: TextSelection,
-                         after: String, afterSelection: TextSelection,
+public func classifyEdit(before: String, beforeSelection: EditSelection,
+                         after: String, afterSelection: EditSelection,
                          command: EditCommand?) -> EditKind {
     switch command {
     case .deleteBackward: return .deleteBackward

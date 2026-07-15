@@ -21,7 +21,7 @@ struct SettingsView: View {
             Section(UIStrings.settingsFallbackMessage) {
                 // Ghost text: a blank setting falls back to the default
                 // message (applied in ContentView.syncSettings) — CTRL-6.
-                MacTextField(text: $fallback,
+                AuxTextField(text: $fallback,
                              placeholder: AppConfig.defaultFallbackMessage,
                              formatter: NoAtSignFormatter())
                     // Safety net only: the formatter blocks typed/pasted "@";
