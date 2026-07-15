@@ -23,8 +23,16 @@ final class UndoRouter {
 
     init(model: AppModel) {
         self.model = model
-        for name: NSNotification.Name in [NSWindow.didBecomeKeyNotification,
-                                          NSWindow.didResignKeyNotification] {
+        // Refresh the menu on the two kinds of context change that carry no
+        // observable signal: key-window switches (sheets, Settings/Help) and
+        // field-focus switches within a window (e.g. Settings field ↔ slider),
+        // which change which editing context Undo/Redo should target (§2/§10.7).
+        let names: [NSNotification.Name] = [
+            NSWindow.didBecomeKeyNotification, NSWindow.didResignKeyNotification,
+            NSControl.textDidBeginEditingNotification, NSControl.textDidEndEditingNotification,
+            NSText.didBeginEditingNotification, NSText.didEndEditingNotification,
+        ]
+        for name in names {
             observers.append(NotificationCenter.default.addObserver(
                 forName: name, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.tick &+= 1 }
