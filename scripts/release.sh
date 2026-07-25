@@ -69,7 +69,9 @@ FINAL_ZIP="dist/Obfuskoder-$VERSION.zip"
 ditto -c -k --keepParent --norsrc --noextattr "$APP" "$FINAL_ZIP"
 
 echo "== Sign update & append appcast entry =="
-NOTES_FILE="${1:-}"
+# Release notes default to the per-release file (dist/release-notes/, gitignored,
+# named like the binaries); pass an explicit path as $1 to override.
+NOTES_FILE="${1:-dist/release-notes/Obfuskoder-$VERSION.md}"
 SPARKLE_BIN="$(find "$HOME/Library/Developer/Xcode/DerivedData" -type d -path '*/artifacts/sparkle/Sparkle/bin' 2>/dev/null | head -1)"
 if [ -z "$SPARKLE_BIN" ] || [ ! -x "$SPARKLE_BIN/sign_update" ]; then
     echo "error: Sparkle 'sign_update' not found. Build the app once in Xcode to resolve the Sparkle package, then re-run." >&2

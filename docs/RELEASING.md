@@ -83,11 +83,13 @@ artifact bundle under DerivedData; the script locates it dynamically).
   updates the file and you commit it, **manually upload the updated
   `appcast.xml` to `updates.aldosoft.com/obfuskoder/`** — pushing to git does
   not publish it.
-- **Release notes**: pass an optional notes file as the script's first
-  argument: `scripts/release.sh path/to/notes.md`. Its contents are embedded
-  as-is (wrapped in `<pre>`) in the appcast item's `<description>` — notes
-  are authored in plain text/Markdown, with **no Markdown→HTML conversion**,
-  so keep them simple. Without a notes file, the item links to the GitHub
+- **Release notes**: the script defaults to the per-release file
+  `dist/release-notes/Obfuskoder-<tag>.md` (gitignored, named like the
+  binaries) — author it there before releasing. Pass an explicit path as the
+  first argument (`scripts/release.sh path/to/notes.md`) to override. Its
+  contents are embedded as-is (wrapped in `<pre>`) in the appcast item's
+  `<description>` — plain text/Markdown, with **no Markdown→HTML conversion**,
+  so keep them simple. If no notes file is found, the item links to the GitHub
   release page instead.
 - **EdDSA signing key**: `sign_update` signs the zip with an EdDSA private
   key Sparkle generates and stores in the login Keychain (via Sparkle's
