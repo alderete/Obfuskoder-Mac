@@ -31,14 +31,21 @@ needed before building · (no tag) = polish/enhancement.
       Manual re-run of 13.3.5 passed 2026-07-01. **Addendum:** rejected `@`s
       (typed or pasted) now also trigger the system beep (`NSSound.beep()` in
       `NoAtSignFormatter`) so the user notices the strip — verified 2026-07-01.
-- [ ] **FIX-3 ❓** — Undo-stack architecture (absorbs FIX-1): all undo sources
-      (model clear/restore, Basic field editors, Advanced NSTextView) share the
-      window undo manager, so stale typing-undo entries survive programmatic
-      restores. Options: (a) cheap hardening — `removeAllActions()` before
-      registering the clear record, making ⌘K/⌘Z/⇧⌘Z deterministic at the cost
-      of typing-undo history; (b) separate undo managers per form / for the
-      model. Also the original question: separate stacks for Basic vs. Advanced?
-      *(§11)* **Details:**
+- [ ] **FIX-3** — Undo-stack architecture (absorbs FIX-1). The shipping design
+      mixed whole-form actions with AppKit field-editor histories; the first
+      hardening attempt misordered Clear and crashed in live use. The July 10
+      branch proved model-owned form undo is required and partially implemented
+      it, but its 700 ms checkpoint/field-session-collapse behavior was only a
+      provisional checkpoint. *(§11)* **Details (design resolved;
+      implementation still open):** Use the approved
+      [`2026-07-14-undo-redo-design-improved.md`](superpowers/specs/2026-07-14-undo-redo-design-improved.md)
+      contract: independent Basic/Advanced form histories, semantic non-timer
+      edit groups, context-sensitive command routing, atomic Clear/Apply, and
+      focus/selection restoration. Architecture is fixed by
+      [`ADR-0001`](adr/0001-context-routed-model-owned-form-undo.md). The current
+      `undo-redo` branch is a provisional checkpoint, not a completed fix. Replan
+      the remaining work and pass
+      [`MANUAL-TEST-UNDO-REDO.md`](MANUAL-TEST-UNDO-REDO.md) before closing FIX-3.
 
 ## 2. Accessibility
 

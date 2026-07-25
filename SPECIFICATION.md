@@ -1,8 +1,8 @@
 # Obfuskoder for macOS — Specification & PRD
 
-**Status:** Draft v0.3
+**Status:** Draft v0.4
 **Owner:** Michael A. Alderete, [Aldosoft](https://aldosoft.com/)
-**Date:** 2026-06-06
+**Date:** 2026-07-14
 **Platform:** macOS (Swift + SwiftUI)
 **Companion document:** [MAC-ASSED-MAC-APPS.md](MAC-ASSED-MAC-APPS.md) — the
 "Mac-assed Mac app" standard this product is held to.
@@ -280,7 +280,32 @@ Fields:
 - **Empty state:** with no presets saved, the menu shows only **Save Current
   Values…** (the list and **Manage…** appear once at least one preset exists).
 
-### 6.8 Clear Form
+### 6.8 Form undo, redo, and Clear Form
+
+The normative behavior is defined in
+[`docs/superpowers/specs/2026-07-14-undo-redo-design-improved.md`](docs/superpowers/specs/2026-07-14-undo-redo-design-improved.md).
+In summary:
+
+- **Context-sensitive commands:** Edit ▸ Undo/Redo and `⌘Z`/`⇧⌘Z` act on the
+  frontmost valid editing context. A focused text field in a sheet or Settings
+  gets its own native text undo; the app must never mutate the form behind a
+  modal sheet or from a Help window.
+- **Independent form histories:** Basic and Advanced each keep a session-only
+  history across mode switches. Mode switching is not undoable, never clears
+  either history, and Undo never switches modes or changes the inactive mode.
+- **Deterministic text groups:** continuous insertion, continuous deletion, and
+  discrete Cut/Paste/Replace/completion actions form semantic groups. Idle time
+  is not a boundary, and leaving a field never collapses earlier groups into one
+  action.
+- **Visible results:** text Undo/Redo focuses the affected field and restores its
+  recorded caret/selection; whole-form actions restore a defined logical focus.
+- **No-op integrity:** actions that do not change content create no history and
+  do not invalidate Redo. A new real action invalidates only its mode/context's
+  redo future.
+- **Saved values:** Apply is one action on the destination mode and does not undo
+  its mode switch. Focused saved-value name fields retain native text undo;
+  persistent Rename/Delete/Reorder use a separate management history if
+  implemented and never mix with form history.
 
 - Both the Basic and Advanced forms provide a **Clear Form** action that resets
   the **currently active** form's fields to empty (the Advanced field returns to
@@ -294,6 +319,12 @@ Fields:
   when the active form is already empty.
 - Clearing affects **only the active form**; the other mode's in-memory values
   are untouched (§6.2), and **no saved presets are deleted** (§6.7).
+- Clear Form is one atomic action. Undo restores every field in the active mode
+  plus the prior logical field focus/selection; Redo clears the mode again. Clear
+  on an already-empty form is a no-op and does not disturb Redo.
+- Applying a saved value is also one atomic content action. Undo stays in the
+  loaded mode and restores that mode's prior content; Redo reapplies the named
+  value. Applying identical destination content records nothing.
 
 ### 6.9 Menu bar & keyboard shortcuts
 
@@ -304,10 +335,11 @@ the String Catalog.)
 - **Obfuskoder (app menu):** About Obfuskoder; Settings… (**⌘,**); standard
   Services, Hide, Quit (**⌘Q**).
 - **File:** Save Current Values… (**⌘S**).
-- **Edit:** standard Undo/Redo, Cut/Copy/Paste, Select All (free with native
-  text controls); then the app's own commands, grouped together and fenced off by
+- **Edit:** context-sensitive, action-named Undo/Redo (`⌘Z` / `⇧⌘Z`) per §6.8,
+  followed by standard Cut/Copy/Paste and Select All; then the app's own
+  commands, grouped together and fenced off by
   separators above and below — **Copy Snippet** (**⇧⌘C**) and **Clear Form**
-  (**⌘K**, §6.8). (Pure SwiftUI `Commands`; no AppKit menu surgery.)
+  (**⌘K**, §6.8).
 - **View:** Basic (**⌘1**) / Advanced (**⌘2**); Show/Hide decoded source.
 - **Window:** standard window commands (Minimize, Zoom).
 - **Help:** Obfuskoder Help (at minimum a link/About-style entry).
@@ -585,10 +617,16 @@ The product is releasable when all of the following are true:
 - [ ] **Field hints:** each Basic field (and the Advanced field) exposes its hint
       via the `info.circle` affordance — help tag on hover, popover on
       click/keyboard — and to VoiceOver as accessibility help.
+- [ ] **Undo/Redo:** the full
+      [`docs/MANUAL-TEST-UNDO-REDO.md`](docs/MANUAL-TEST-UNDO-REDO.md) runtime
+      matrix passes: active-context routing, independent Basic/Advanced
+      histories, deterministic semantic text groups, selection/focus
+      restoration, atomic Clear/Apply, no-op and redo integrity, and safe
+      behavior at the bottom of history.
 - [ ] **Clear Form:** a button and a keyboard-shortcut menu command clear the
-      active form and reset the result, undoably, without confirmation, leaving
-      the other mode's values and all saved presets intact; the action is
-      disabled when the active form is already empty.
+      active form and reset the result as one undoable action, without
+      confirmation, leaving the other mode's values and all saved presets
+      intact; the action is disabled when the active form is already empty.
 - [ ] The whole UI is operable from the keyboard with visible focus; VoiceOver
       describes every control.
 - [ ] Renders correctly in **both Light and Dark** appearance.
@@ -639,8 +677,12 @@ The product is releasable when all of the following are true:
 - **Field hints:** the four Basic hints (and the Advanced hint) are carried over
   from the web edition and presented via a macOS `info.circle` help affordance
   (hover help tag + click/keyboard popover), fully accessible (§6.3).
+- **Undo/Redo:** context-sensitive `⌘Z`/`⇧⌘Z`; independent Basic and Advanced
+  form histories; semantic, non-timer text grouping; atomic Clear/Apply;
+  selection/focus restoration; session-only lifetime (§6.8 and the improved
+  undo/redo design spec).
 - **Clear Form:** present in both forms as a button plus an Edit-menu command
-  (**⌘K**), undoable, per active form (§6.8).
+  (**⌘K**), undoable as one active-mode action (§6.8).
 - **License copyright holder:** **Michael A. Alderete** (matching the web
   edition).
 

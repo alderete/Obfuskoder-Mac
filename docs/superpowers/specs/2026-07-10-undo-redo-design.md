@@ -1,8 +1,15 @@
 # Undo / Redo Behavior — Design Spec
 
 - **Date:** 2026-07-10
-- **Status:** Approved behavior design, pending implementation plan
+- **Status:** Superseded 2026-07-14; retained as a historical record
 - **Feature:** Coherent undo/redo for the input form (the FIX-3 redo, done right)
+
+> **Do not use this document as the current behavior contract.** It was replaced
+> by [Undo / Redo Behavior — Improved Design Spec](2026-07-14-undo-redo-design-improved.md).
+> In particular, its word-level/edit-burst language, focus rules, and blanket
+> exclusion of auxiliary text-editing contexts are no longer normative. The
+> routing investigation remains valid and is captured in
+> [ADR-0001](../../adr/0001-context-routed-model-owned-form-undo.md).
 
 ## 1. Goal & framing
 

@@ -2,6 +2,14 @@
 
 **Date:** 2026-07-10 · **Branch:** `undo-redo`
 
+> **Current status (2026-07-14):** The measured routing findings and the choice
+> of model-owned, per-mode form undo remain accepted. The provisional
+> pause/edit-session granularity chosen during the spike has been superseded by
+> the deterministic semantic grouping in the
+> [improved behavior spec](superpowers/specs/2026-07-14-undo-redo-design-improved.md).
+> See [ADR-0001](adr/0001-context-routed-model-owned-form-undo.md) for the durable
+> architecture decision.
+
 ## Question
 
 Can the editing-undo of the form's text views (`MacTextField`/`NSTextField` and
@@ -48,8 +56,11 @@ fields' native undo:
   our own Edit ▸ Undo/Redo commands (`⌘Z`/`⇧⌘Z`) call `model.activeUndoManager`
   directly. Menu key-equivalents are checked before the responder chain, so the
   field editor's native undo is never invoked.
-- **Granularity:** coalesced edit-bursts (a step per typing pause / focus change),
-  NOT literal native per-keystroke/word. Spec §5 updated accordingly.
+- **Granularity at the time of the spike:** coalesced edit-bursts (a step per
+  typing pause / focus change), not literal native per-keystroke/word. This was
+  later found to be an implementation-shaped and unpredictable product rule; it
+  is historical rather than normative. The 2026-07-14 improved spec replaces it
+  with semantic action boundaries and no idle timer.
 
 ## Why not the alternatives
 

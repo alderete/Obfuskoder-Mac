@@ -109,13 +109,22 @@ For **each** Basic field (Email, Link text, Link title, Subject):
 - [ ] 10.7a Rename or delete a preset in the Manage panel → the **Saved Values menu reflects it immediately**.
 - [ ] 10.8 Save a preset, **Quit and relaunch** → the preset is **still there** (persisted).
 
-## 11. Clear Form + Undo
+## 11. Form Undo/Redo + Clear Form
+
+The dedicated [`MANUAL-TEST-UNDO-REDO.md`](MANUAL-TEST-UNDO-REDO.md) matrix is
+the required acceptance gate. The checks below are only the general smoke pass;
+they do not replace it.
 
 - [ ] 11.1 Fill the Basic form → **Clear Form** button clears all fields; result returns to empty.
 - [ ] 11.2 With an empty active form, the **Clear Form** button and the **⌘K** menu item are **disabled**.
-- [ ] 11.3 Fill the form, press **⌘K** → cleared (no confirmation dialog).
-- [ ] 11.4 Press **⌘Z (Undo)** → the cleared values **come back**; **⇧⌘Z (Redo)** → cleared again.
-- [ ] 11.5 Fill Basic, switch to Advanced and add HTML, switch back to Basic, **Clear Form** → only the **Basic** fields clear; switch to Advanced → its HTML is **untouched**.
+- [ ] 11.3 Fill the form, press **⌘K** → cleared as one action with no confirmation dialog.
+- [ ] 11.4 Press **⌘Z (Undo)** → all cleared values and prior logical field focus/selection come back; **⇧⌘Z (Redo)** → all clear again.
+- [ ] 11.5 Fill Basic, switch to Advanced and add HTML, switch back to Basic, **Clear Form** → only Basic clears; switching to Advanced shows its HTML untouched and its independent history.
+- [ ] 11.6 Edit multiple Basic fields → repeated Undo proceeds most-recent-first across fields, focuses each affected field, and restores its caret/selection.
+- [ ] 11.7 Pause while typing without moving the caret → the pause does not create a new action; moving the caret or changing focus does.
+- [ ] 11.8 Apply a saved value → one Undo restores the destination mode's prior content without reversing the mode switch; Redo reapplies it.
+- [ ] 11.9 With a modal sheet, Settings, or Help window active, Undo targets only that valid context and never the form behind it.
+- [ ] 11.10 Undo past the bottom is disabled/a harmless no-op and never crashes.
 
 ## 12. Menus & keyboard
 
