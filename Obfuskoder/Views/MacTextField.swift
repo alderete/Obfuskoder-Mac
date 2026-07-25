@@ -83,6 +83,10 @@ struct MacTextField: NSViewRepresentable {
         private var lastSelection = EditSelection(location: 0)
         private var pendingCommand: EditCommand?
         private var selectionObserver: NSObjectProtocol?
+        /// The field editor being observed. Read inside the observer instead of
+        /// `note.object` so the Sendable observer closure never sends the
+        /// non-Sendable Notification into its main-actor region.
+        private weak var observedEditor: NSTextView?
 
         init(_ parent: MacTextField) { self.parent = parent }
 
@@ -138,6 +142,7 @@ struct MacTextField: NSViewRepresentable {
 
         func stopObservingSelection() {
             if let t = selectionObserver { NotificationCenter.default.removeObserver(t); selectionObserver = nil }
+            observedEditor = nil
         }
 
         /// Report pure caret/selection moves. The `string == lastText` guard skips
@@ -146,20 +151,26 @@ struct MacTextField: NSViewRepresentable {
         private func observeSelection(_ field: NSTextField) {
             guard let editor = field.currentEditor() as? NSTextView else { return }
             if let t = selectionObserver { NotificationCenter.default.removeObserver(t) }
+            observedEditor = editor
             selectionObserver = NotificationCenter.default.addObserver(
-                forName: NSTextView.didChangeSelectionNotification, object: editor, queue: .main) { [weak self] note in
-                guard let self, let editor = note.object as? NSTextView,
-                      // Ignore the selection collapse AppKit fires while the field
-                      // is resigning first responder: it isn't a user caret move,
-                      // and letting it through overwrites the last real selection
-                      // that Clear/Apply undo restores focus to (test 6.2). Real
-                      // moves happen while the editor still holds focus.
-                      editor.window?.firstResponder === editor,
-                      editor.string == self.lastText else { return }
-                let sel = EditSelection(location: editor.selectedRange.location, length: editor.selectedRange.length)
-                guard sel != self.lastSelection else { return }
-                self.lastSelection = sel
-                self.parent.onSelection(sel)
+                forName: NSTextView.didChangeSelectionNotification, object: editor, queue: .main) { [weak self] _ in
+                // queue: .main ⇒ this runs on the main actor; assert it so the
+                // MainActor-isolated AppKit/coordinator state below is legal to
+                // touch (matches UndoRouter/AppModel's observer pattern).
+                MainActor.assumeIsolated {
+                    guard let self, let editor = self.observedEditor,
+                          // Ignore the selection collapse AppKit fires while the
+                          // field is resigning first responder: it isn't a user
+                          // caret move, and letting it through overwrites the last
+                          // real selection that Clear/Apply undo restores focus to
+                          // (test 6.2). Real moves happen while the editor holds focus.
+                          editor.window?.firstResponder === editor,
+                          editor.string == self.lastText else { return }
+                    let sel = EditSelection(location: editor.selectedRange.location, length: editor.selectedRange.length)
+                    guard sel != self.lastSelection else { return }
+                    self.lastSelection = sel
+                    self.parent.onSelection(sel)
+                }
             }
         }
 
