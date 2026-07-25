@@ -77,7 +77,9 @@ A pass/fail list the app should satisfy. Items map to the
 
 ### Menus & keyboard
 - [ ] Complete menu bar: app, File, Edit, View, Window, Help.
-- [ ] Standard Edit menu works (Undo/Redo, Cut/Copy/Paste, Select All).
+- [ ] Standard Edit menu works (context-sensitive, action-named Undo/Redo;
+      Cut/Copy/Paste; Select All), and `⌘Z` never reaches behind the key sheet or
+      window to alter another context.
 - [ ] App-specific commands have discoverable, conventional shortcuts.
 - [ ] Settings opens with ⌘,.
 - [ ] Entire app operable from the keyboard; visible focus; logical focus order.
@@ -92,7 +94,9 @@ A pass/fail list the app should satisfy. Items map to the
 - [ ] Smart quotes, smart dashes, and auto text-replacement disabled where they
       would corrupt input (emails, code/HTML).
 - [ ] Spell-checking off on code/HTML fields.
-- [ ] Standard text selection/editing behaviors intact.
+- [ ] Standard text selection/editing behaviors intact, including deterministic
+      semantic undo groups and caret/selection restoration without timer-defined
+      boundaries.
 
 ### Feedback & interaction
 - [ ] Validation is inline and non-modal; no alert spam.
