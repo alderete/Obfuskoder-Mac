@@ -13,7 +13,11 @@ struct SaveValuesSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(UIStrings.presetNamePrompt).font(.appHeadline)
-            TextField("", text: $name)
+            // AuxTextField (not a plain TextField): it clears its native-undo
+            // stack on focus / programmatic reset, so a "Typing" action from a
+            // prior presentation can't survive a Cancel-then-reopen and crash
+            // when invoked against the reset name (test 10.2).
+            AuxTextField(text: $name, clearsUndoOnFocus: true)
                 .frame(width: 280)
                 .onChange(of: name) { duplicate = false; saveError = nil }
                 .accessibilityLabel(Text(UIStrings.presetNamePrompt))

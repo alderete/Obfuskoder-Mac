@@ -148,7 +148,14 @@ struct MacTextField: NSViewRepresentable {
             if let t = selectionObserver { NotificationCenter.default.removeObserver(t) }
             selectionObserver = NotificationCenter.default.addObserver(
                 forName: NSTextView.didChangeSelectionNotification, object: editor, queue: .main) { [weak self] note in
-                guard let self, let editor = note.object as? NSTextView, editor.string == self.lastText else { return }
+                guard let self, let editor = note.object as? NSTextView,
+                      // Ignore the selection collapse AppKit fires while the field
+                      // is resigning first responder: it isn't a user caret move,
+                      // and letting it through overwrites the last real selection
+                      // that Clear/Apply undo restores focus to (test 6.2). Real
+                      // moves happen while the editor still holds focus.
+                      editor.window?.firstResponder === editor,
+                      editor.string == self.lastText else { return }
                 let sel = EditSelection(location: editor.selectedRange.location, length: editor.selectedRange.length)
                 guard sel != self.lastSelection else { return }
                 self.lastSelection = sel
@@ -206,10 +213,22 @@ final class NoSubstitutionTextField: NSTextField {
     /// fields (Settings, sheets) keep it (spec §12.1).
     var disablesNativeUndo = true
 
+    /// Auxiliary fields whose bound text is reset between presentations (e.g.
+    /// the Save sheet's name field) start each focus session with an empty
+    /// native-undo stack. Without this, SwiftUI reuses the backing field/cell
+    /// across a Cancel-then-reopen, so a "Typing" action recorded in the prior
+    /// presentation survives against the now-empty text and crashes with an
+    /// NSRangeException when invoked (manual test 10.2).
+    var clearsNativeUndoOnFocus = false
+
     override func becomeFirstResponder() -> Bool {
         let ok = super.becomeFirstResponder()
         if let editor = currentEditor() as? NSTextView {
             if disablesNativeUndo { editor.allowsUndo = false }
+            if clearsNativeUndoOnFocus {
+                editor.breakUndoCoalescing()
+                editor.undoManager?.removeAllActions()
+            }
             editor.selectedTextAttributes = [.backgroundColor: NSColor.appTextSelection]
             editor.isAutomaticQuoteSubstitutionEnabled = false
             editor.isAutomaticDashSubstitutionEnabled = false

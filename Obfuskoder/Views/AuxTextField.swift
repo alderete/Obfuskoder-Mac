@@ -10,10 +10,15 @@ struct AuxTextField: NSViewRepresentable {
     @Binding var text: String
     var placeholder: String = ""
     var formatter: Formatter?
+    /// Set for fields whose bound text is reset between presentations (the Save
+    /// sheet name field), so a stale native-undo action can't outlive its text
+    /// and crash on invocation — see `NoSubstitutionTextField` (test 10.2).
+    var clearsUndoOnFocus = false
 
     func makeNSView(context: Context) -> NSTextField {
         let field = NoSubstitutionTextField()
         field.disablesNativeUndo = false          // auxiliary: keep native ⌘Z
+        field.clearsNativeUndoOnFocus = clearsUndoOnFocus
         field.placeholderString = placeholder
         field.formatter = formatter
         field.delegate = context.coordinator
@@ -27,7 +32,18 @@ struct AuxTextField: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSTextField, context: Context) {
         context.coordinator.parent = self
-        if nsView.stringValue != text { nsView.stringValue = text }
+        if nsView.stringValue != text {
+            nsView.stringValue = text
+            // A programmatic reset invalidates the field editor's native undo
+            // actions (their ranges refer to the prior text). Clear them while
+            // the field is still first responder — the Cancel-then-reopen path
+            // that reuses the field never resigns focus, so this is the only
+            // hook that fires before ⌘Z could invoke a stale action (test 10.2).
+            if let editor = nsView.currentEditor() as? NSTextView {
+                editor.breakUndoCoalescing()
+                editor.undoManager?.removeAllActions()
+            }
+        }
         nsView.placeholderAttributedString = placeholder.isEmpty ? nil :
             NSAttributedString(string: placeholder, attributes: [
                 .foregroundColor: NSColor.tertiaryLabelColor,
