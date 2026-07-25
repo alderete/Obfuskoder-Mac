@@ -151,6 +151,10 @@ private struct PresetRow<G: Gesture>: View {
                     // Commit (or revert) when focus leaves the field too, so a
                     // click-away doesn't leave the row and the store disagreeing.
                     .onChange(of: nameFocused) { if !nameFocused { commitRename() } }
+                    // Clicking Done dismisses without reliably blurring the
+                    // field, so onChange above may not fire; committing on
+                    // disappear saves a pending rename when the sheet closes.
+                    .onDisappear { commitRename() }
                     .accessibilityLabel(Text(UIStrings.presetNameField))
                 Text(detail)
                     .font(detailIsCode ? .caption.monospaced() : .caption)
@@ -186,6 +190,9 @@ private struct PresetRow<G: Gesture>: View {
     /// Rename to the edited text, reverting on an empty name and beeping (and
     /// reverting) if the store rejects it — never silently drop the edit.
     private func commitRename() {
+        // Skip if the row's preset is gone (e.g. deleted while a rename was
+        // pending) so the disappear-commit can't beep about a missing id.
+        guard store.presets.contains(where: { $0.id == preset.id }) else { return }
         let trimmed = editedName.trimmingCharacters(in: .whitespaces)
         guard trimmed != preset.name else { return }
         guard !trimmed.isEmpty else { editedName = preset.name; return }
