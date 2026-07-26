@@ -26,13 +26,22 @@ struct ModePicker: View {
         // 4pt measured-in: puts the chip's cap center on the glass capsule's
         // cap center, so the gap stays even around the curve.
         .padding(.horizontal, 4)
+        // Slide the selection lozenge implicitly off the value. This is
+        // deliberately NOT a `withAnimation` at the tap: on macOS (Xcode 26.6)
+        // a withAnimation transaction does not reach NSToolbar-hosted content
+        // and snaps, whereas `.animation(value:)` animates it — and it covers
+        // every trigger uniformly (toolbar click, and a mode switch from Apply
+        // Saved Values). Honors Reduce Motion. (Verified in a SwiftUI testbed.)
+        .animation(reduceMotion ? nil : .default, value: mode)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(UIStrings.modeLabel))
     }
 
     private func segment(_ title: String, _ value: FormMode) -> some View {
         Button {
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) { onSelect(value) }
+            // Animation is driven implicitly by `.animation(value: mode)` on the
+            // container (see body), so click and any other trigger behave alike.
+            onSelect(value)
         } label: {
             Text(title)
                 .padding(.horizontal, 14)
