@@ -9,7 +9,16 @@ import ObfuskoderKit
 /// Delete) provides the keyboard/accessibility path.
 struct ManagePresetsSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(UndoRouter.self) private var router
     @Bindable var store: PresetStore
+    /// Per-session undo stack for delete/reorder, registered with the router
+    /// while this panel is open. Rename stays on native field undo.
+    @State private var undo: SavedValuesUndo
+
+    init(store: PresetStore) {
+        _store = Bindable(wrappedValue: store)
+        _undo = State(initialValue: SavedValuesUndo(store: store))
+    }
 
     private static let rowHeight: CGFloat = 44
 
@@ -48,6 +57,8 @@ struct ManagePresetsSheet: View {
         }
         .padding(16)
         .frame(width: 420)
+        .onAppear { router.savedValuesUndo = undo }
+        .onDisappear { router.savedValuesUndo = nil; undo.reset() }
     }
 
     private func row(_ preset: Preset, at index: Int) -> some View {
@@ -58,7 +69,8 @@ struct ManagePresetsSheet: View {
             showsDivider: index < store.presets.count - 1,
             gripper: gripperGesture(for: preset, at: index),
             moveUp: index > 0 ? { move(from: index, to: index - 1) } : nil,
-            moveDown: index < store.presets.count - 1 ? { move(from: index, to: index + 1) } : nil
+            moveDown: index < store.presets.count - 1 ? { move(from: index, to: index + 1) } : nil,
+            delete: { deletePreset(preset) }
         )
         .frame(height: Self.rowHeight)
         .offset(y: rowOffset(index: index, isDragged: isDragged))
@@ -102,8 +114,15 @@ struct ManagePresetsSheet: View {
     }
 
     private func move(from source: Int, to target: Int) {
-        store.move(fromOffsets: IndexSet(integer: source),
-                   toOffset: target > source ? target + 1 : target)
+        let name = store.presets[source].name
+        undo.move(fromOffsets: IndexSet(integer: source),
+                  toOffset: target > source ? target + 1 : target,
+                  actionName: UIStrings.savedValueMoveAction(name: name))
+    }
+
+    private func deletePreset(_ preset: Preset) {
+        do { try undo.delete(id: preset.id, actionName: UIStrings.savedValueDeleteAction(name: preset.name)) }
+        catch { NSSound.beep() }
     }
 }
 
@@ -114,19 +133,22 @@ private struct PresetRow<G: Gesture>: View {
     let gripper: G
     let moveUp: (() -> Void)?
     let moveDown: (() -> Void)?
+    let delete: () -> Void
 
     @State private var editedName: String
     @State private var isHovering = false
     @FocusState private var nameFocused: Bool
 
     init(store: PresetStore, preset: Preset, showsDivider: Bool,
-         gripper: G, moveUp: (() -> Void)?, moveDown: (() -> Void)?) {
+         gripper: G, moveUp: (() -> Void)?, moveDown: (() -> Void)?,
+         delete: @escaping () -> Void) {
         self.store = store
         self.preset = preset
         self.showsDivider = showsDivider
         self.gripper = gripper
         self.moveUp = moveUp
         self.moveDown = moveDown
+        self.delete = delete
         _editedName = State(initialValue: preset.name)
     }
 
@@ -165,7 +187,7 @@ private struct PresetRow<G: Gesture>: View {
             Spacer()
 
             if isHovering {
-                Button(role: .destructive) { deletePreset() } label: {
+                Button(role: .destructive) { delete() } label: {
                     Image(systemName: "trash")
                 }
                 .buttonStyle(.borderless)
@@ -183,7 +205,7 @@ private struct PresetRow<G: Gesture>: View {
             if let moveUp { Button(UIStrings.moveUp, action: moveUp) }
             if let moveDown { Button(UIStrings.moveDown, action: moveDown) }
             Divider()
-            Button(UIStrings.delete, role: .destructive) { deletePreset() }
+            Button(UIStrings.delete, role: .destructive) { delete() }
         }
     }
 
@@ -198,11 +220,6 @@ private struct PresetRow<G: Gesture>: View {
         guard !trimmed.isEmpty else { editedName = preset.name; return }
         do { try store.rename(id: preset.id, to: trimmed) }
         catch { NSSound.beep(); editedName = preset.name }
-    }
-
-    private func deletePreset() {
-        do { try store.delete(id: preset.id) }
-        catch { NSSound.beep() }
     }
 
     private var modeSymbol: String {

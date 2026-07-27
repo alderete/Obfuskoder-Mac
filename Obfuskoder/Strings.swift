@@ -62,6 +62,11 @@ enum UIStrings {
     static let undoReplace = String(localized: "Replace")
     static let undoCompleteLinkText = String(localized: "Complete Link Text")
     static func undoApply(_ name: String) -> String { String(localized: "Apply “\(name)”") }
+
+    // Saved-values undo action names (Manage panel). Composed into "Undo …" /
+    // "Redo …" by the UndoManager, like the form actions above.
+    static func savedValueDeleteAction(name: String) -> String { String(localized: "Delete “\(name)”") }
+    static func savedValueMoveAction(name: String) -> String { String(localized: "Move “\(name)”") }
     static let modeLabel = String(localized: "Input mode")
     static let showDecodedSourceMenu = String(localized: "Show Decoded Source")
     static let hideDecodedSourceMenu = String(localized: "Hide Decoded Source")
