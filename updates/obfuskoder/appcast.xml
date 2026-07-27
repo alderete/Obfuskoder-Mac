@@ -7,6 +7,20 @@
 		<language>en</language>
 		<!-- ITEMS: newest first; entries below are appended by scripts/release.sh -->
 		<item>
+			<title>Obfuskoder 1.0b8</title>
+			<pubDate>Mon, 27 Jul 2026 12:08:13 -0700</pubDate>
+			<sparkle:version>134</sparkle:version>
+			<sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+			<sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+			<description><![CDATA[<pre style="white-space:pre-wrap;font:13px -apple-system,sans-serif">## Obfuskoder 1.0b8
+
+**Small polish.**
+
+- The **Basic / Advanced** switcher now animates (if Reduce Motion setting is not enabled) — the selection slides between the two modes instead of jumping.
+- Clean-up edit for UI and Help text.</pre>]]></description>
+			<enclosure url="https://github.com/alderete/Obfuskoder-Mac/releases/download/1.0b8/Obfuskoder-1.0b8.zip" sparkle:edSignature="Ryoj49RLHCFYb7oD1gOOkuPfG8TTM1Enmjd7wCQg3QAiLYVXM0TlMpDqL0b2ES0sPwhVT3R17ZcOWQtLY3wSDQ==" length="5308061" type="application/octet-stream"/>
+		</item>
+		<item>
 			<title>Obfuskoder 1.0b7</title>
 			<pubDate>Sat, 25 Jul 2026 12:09:01 -0700</pubDate>
 			<sparkle:version>131</sparkle:version>
