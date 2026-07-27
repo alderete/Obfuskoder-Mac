@@ -5,9 +5,11 @@ import Foundation
 /// interleaved renames (which use native field undo) are never clobbered.
 /// The caller supplies the localized action name.
 ///
-/// Grouping uses the default `groupsByEvent = true`: each user action (a
-/// delete, a drag/Move, or a menu undo) is a single run-loop event and so
-/// becomes exactly one undo step — no explicit grouping needed.
+/// Grouping is explicit (`groupsByEvent = false` + `begin/endUndoGrouping`
+/// around each action), so every delete/reorder is a discrete, immediately
+/// undoable step regardless of run-loop timing — the same approach the form
+/// undo uses. (A `groupsByEvent = true` version only closed the group on the
+/// next run-loop event, so a drag-move wasn't undoable until a later action.)
 @MainActor
 public final class SavedValuesUndo {
     private let store: PresetStore
@@ -16,6 +18,7 @@ public final class SavedValuesUndo {
     public init(store: PresetStore, undoManager: UndoManager = UndoManager()) {
         self.store = store
         self.undoManager = undoManager
+        undoManager.groupsByEvent = false
     }
 
     public var canUndo: Bool { undoManager.canUndo }
@@ -35,7 +38,9 @@ public final class SavedValuesUndo {
         }
         let preset = store.presets[index]
         try store.delete(id: id)
+        undoManager.beginUndoGrouping()
         registerReinsert(preset: preset, index: index, name: actionName)
+        undoManager.endUndoGrouping()
     }
 
     /// State just became "deleted"; register the UNDO that re-inserts.
@@ -62,7 +67,9 @@ public final class SavedValuesUndo {
         let previous = store.presets.map(\.id)
         store.move(fromOffsets: source, toOffset: destination)
         let current = store.presets.map(\.id)
+        undoManager.beginUndoGrouping()
         registerReorder(restore: previous, reapply: current, name: actionName)
+        undoManager.endUndoGrouping()
     }
 
     /// Order just changed; register the UNDO that restores `restore`, whose
