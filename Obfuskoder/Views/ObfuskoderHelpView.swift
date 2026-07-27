@@ -8,7 +8,6 @@ struct ObfuskoderHelpView: View {
             Text(inlineMarkdown: UIStrings.appHelpIntro)
             Text(inlineMarkdown: UIStrings.appHelpModes)
             Text(inlineMarkdown: UIStrings.appHelpPreview)
-            Text(inlineMarkdown: UIStrings.appHelpGuarantee)
             Text(inlineMarkdown: UIStrings.appHelpSaved)
             Text(inlineMarkdown: UIStrings.appHelpPrivacy)
             Text(inlineMarkdown: UIStrings.appHelpCLIPointer)
