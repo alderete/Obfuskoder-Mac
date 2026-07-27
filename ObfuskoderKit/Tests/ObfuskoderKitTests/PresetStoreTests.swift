@@ -128,3 +128,49 @@ private func tempStore() -> (PresetStore, URL) {
     let siblings = try FileManager.default.contentsOfDirectory(atPath: dir.path)
     #expect(siblings.allSatisfy { !$0.contains("corrupt") })
 }
+
+// MARK: - insert / setOrder (undo support)
+
+@MainActor @Test func insertRestoresAtIndex() throws {
+    let (store, _) = tempStore()
+    let a = try store.save(name: "A", payload: .advanced("a"))
+    let b = try store.save(name: "B", payload: .advanced("b"))
+    let c = try store.save(name: "C", payload: .advanced("c"))
+    try store.delete(id: b.id)
+    #expect(store.presets.map(\.id) == [a.id, c.id])
+    store.insert(b, at: 1)
+    #expect(store.presets.map(\.id) == [a.id, b.id, c.id])
+}
+
+@MainActor @Test func insertClampsOutOfRangeIndex() throws {
+    let (store, _) = tempStore()
+    let a = try store.save(name: "A", payload: .advanced("a"))
+    let b = Preset(name: "B", payload: .advanced("b"))
+    store.insert(b, at: 99)
+    #expect(store.presets.map(\.id) == [a.id, b.id])
+}
+
+@MainActor @Test func insertPersists() throws {
+    let (store, url) = tempStore()
+    let a = Preset(name: "A", payload: .advanced("a"))
+    store.insert(a, at: 0)
+    let reloaded = PresetStore(fileURL: url)
+    #expect(reloaded.presets.map(\.id) == [a.id])
+}
+
+@MainActor @Test func setOrderReordersById() throws {
+    let (store, _) = tempStore()
+    let a = try store.save(name: "A", payload: .advanced("a"))
+    let b = try store.save(name: "B", payload: .advanced("b"))
+    let c = try store.save(name: "C", payload: .advanced("c"))
+    store.setOrder([c.id, a.id, b.id])
+    #expect(store.presets.map(\.id) == [c.id, a.id, b.id])
+}
+
+@MainActor @Test func setOrderIgnoresMissingAndAppendsUnlisted() throws {
+    let (store, _) = tempStore()
+    let a = try store.save(name: "A", payload: .advanced("a"))
+    let b = try store.save(name: "B", payload: .advanced("b"))
+    store.setOrder([UUID(), a.id])
+    #expect(store.presets.map(\.id) == [a.id, b.id])
+}

@@ -69,6 +69,26 @@ public final class PresetStore {
         do { try persist(result); presets = result } catch { }
     }
 
+    /// Re-insert a preset at a given index (used by delete-undo). Clamps the
+    /// index; does NOT enforce name uniqueness — this is a restore.
+    public func insert(_ preset: Preset, at index: Int) {
+        var updated = presets
+        let clamped = min(max(index, 0), updated.count)
+        updated.insert(preset, at: clamped)
+        do { try persist(updated); presets = updated } catch { }
+    }
+
+    /// Reorder to the given id sequence (used by reorder-undo/redo). Ids not
+    /// present are ignored; presets absent from `ids` keep their current
+    /// relative order, appended after the listed ones.
+    public func setOrder(_ ids: [UUID]) {
+        let byId = Dictionary(uniqueKeysWithValues: presets.map { ($0.id, $0) })
+        var ordered = ids.compactMap { byId[$0] }
+        let listed = Set(ids)
+        ordered += presets.filter { !listed.contains($0.id) }
+        do { try persist(ordered); presets = ordered } catch { }
+    }
+
     public func nameExists(_ name: String) -> Bool {
         presets.contains { $0.name == name }
     }
