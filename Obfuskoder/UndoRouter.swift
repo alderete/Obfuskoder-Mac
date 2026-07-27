@@ -68,39 +68,44 @@ final class UndoRouter {
         return true
     }
 
+    // An auxiliary text field wins ONLY when it actually has an edit to
+    // undo/redo. A merely-focused but unedited name field (e.g. the Manage
+    // panel's rows, which macOS gives first-responder) must not shadow the
+    // saved-values stack. This is safe for Settings/Save sheets: there
+    // `savedValuesUndo` is nil, so the fall-through lands where it did before.
     var canUndo: Bool {
         _ = tick
-        if let um = auxTextView?.undoManager { return um.canUndo }
+        if auxTextView?.undoManager?.canUndo == true { return true }
         if let sv = savedValuesUndo { return sv.canUndo }
         return isMainFormContext && model.canUndo
     }
     var canRedo: Bool {
         _ = tick
-        if let um = auxTextView?.undoManager { return um.canRedo }
+        if auxTextView?.undoManager?.canRedo == true { return true }
         if let sv = savedValuesUndo { return sv.canRedo }
         return isMainFormContext && model.canRedo
     }
     var undoTitle: String {
         _ = tick
-        if let um = auxTextView?.undoManager { return um.undoMenuItemTitle }
-        if let sv = savedValuesUndo { return sv.undoMenuItemTitle }
+        if let um = auxTextView?.undoManager, um.canUndo { return um.undoMenuItemTitle }
+        if let sv = savedValuesUndo, sv.canUndo { return sv.undoMenuItemTitle }
         return isMainFormContext ? model.undoTitle : String(localized: "Undo")
     }
     var redoTitle: String {
         _ = tick
-        if let um = auxTextView?.undoManager { return um.redoMenuItemTitle }
-        if let sv = savedValuesUndo { return sv.redoMenuItemTitle }
+        if let um = auxTextView?.undoManager, um.canRedo { return um.redoMenuItemTitle }
+        if let sv = savedValuesUndo, sv.canRedo { return sv.redoMenuItemTitle }
         return isMainFormContext ? model.redoTitle : String(localized: "Redo")
     }
 
     func performUndo() {
-        if let um = auxTextView?.undoManager { if um.canUndo { um.undo() }; return }
-        if let sv = savedValuesUndo { sv.undo(); return }
+        if let um = auxTextView?.undoManager, um.canUndo { um.undo(); return }
+        if let sv = savedValuesUndo, sv.canUndo { sv.undo(); return }
         if isMainFormContext { model.undo() }
     }
     func performRedo() {
-        if let um = auxTextView?.undoManager { if um.canRedo { um.redo() }; return }
-        if let sv = savedValuesUndo { sv.redo(); return }
+        if let um = auxTextView?.undoManager, um.canRedo { um.redo(); return }
+        if let sv = savedValuesUndo, sv.canRedo { sv.redo(); return }
         if isMainFormContext { model.redo() }
     }
 }
