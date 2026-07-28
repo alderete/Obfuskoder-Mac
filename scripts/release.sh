@@ -88,12 +88,13 @@ BUILD_NUMBER="$(git rev-list --count HEAD)"
 DL_URL="https://github.com/alderete/Obfuskoder-Mac/releases/download/$VERSION/Obfuskoder-$VERSION.zip"
 PUB_DATE="$(date -R 2>/dev/null || date '+%a, %d %b %Y %H:%M:%S %z')"
 
-# Release notes: embed the notes file (wrapped for readable rendering in
-# Sparkle's WebView) if given, else link to the GitHub release page.
+# Release notes: embed the notes file as Markdown for Sparkle to render
+# natively (sparkle:format="markdown", supported since Sparkle 2.9 / macOS 12 —
+# both satisfied here). Falls back to a Markdown link to the GitHub release page.
 if [ -n "$NOTES_FILE" ] && [ -f "$NOTES_FILE" ]; then
-    NOTES_HTML="<pre style=\"white-space:pre-wrap;font:13px -apple-system,sans-serif\">$(sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' "$NOTES_FILE")</pre>"
+    NOTES_MD="$(cat "$NOTES_FILE")"
 else
-    NOTES_HTML="<p>See the <a href=\"https://github.com/alderete/Obfuskoder-Mac/releases/tag/$VERSION\">release notes on GitHub</a>.</p>"
+    NOTES_MD="See the [release notes on GitHub](https://github.com/alderete/Obfuskoder-Mac/releases/tag/$VERSION)."
 fi
 
 APPCAST="updates/obfuskoder/appcast.xml"
@@ -107,7 +108,7 @@ cat > "$ITEM_FILE" <<ITEM
 			<sparkle:version>$BUILD_NUMBER</sparkle:version>
 			<sparkle:shortVersionString>1.0</sparkle:shortVersionString>
 			<sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-			<description><![CDATA[$NOTES_HTML]]></description>
+			<description sparkle:format="markdown"><![CDATA[$NOTES_MD]]></description>
 			<enclosure url="$DL_URL" $SIG_ATTRS type="application/octet-stream"/>
 		</item>
 ITEM
