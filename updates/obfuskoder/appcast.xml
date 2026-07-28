@@ -7,6 +7,22 @@
 		<language>en</language>
 		<!-- ITEMS: newest first; entries below are appended by scripts/release.sh -->
 		<item>
+			<title>Obfuskoder 1.0rc1</title>
+			<pubDate>Mon, 27 Jul 2026 18:56:56 -0700</pubDate>
+			<sparkle:version>147</sparkle:version>
+			<sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+			<sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+			<description sparkle:format="markdown"><![CDATA[## Obfuskoder 1.0rc1
+
+**The 1.0 release candidate.**
+
+- **Undo for saved values.** Deleting or reordering an entry in Manage Saved
+  Values can now be undone and redone — with ⌘Z / ⇧⌘Z or the Edit menu — so an
+  accidental delete is easy to take back. Respects the Reduce Motion setting.
+- **Markdown-formatted release notes.** In the software update panel, the Markdown release notes should now render with styling, etc.]]></description>
+			<enclosure url="https://github.com/alderete/Obfuskoder-Mac/releases/download/1.0rc1/Obfuskoder-1.0rc1.zip" sparkle:edSignature="24H6wcW/u4poc0Zr6ZNM0RLJCTTKtsuPU6LMrk8ilhtXUKO3bHQvfYouHX3iIMr/yOyvT11Pst5u+MsTiY67Cg==" length="5349425" type="application/octet-stream"/>
+		</item>
+		<item>
 			<title>Obfuskoder 1.0b8</title>
 			<pubDate>Mon, 27 Jul 2026 12:08:13 -0700</pubDate>
 			<sparkle:version>134</sparkle:version>
