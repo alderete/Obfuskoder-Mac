@@ -168,9 +168,16 @@ timing-sensitive conclusions.
       disabled rather than targeting the form.
 - [ ] 10.3 Edit a name in Manage Saved Values. `⌘Z` first targets that native text
       edit, never the form.
-- [ ] 10.4 If saved-value Rename/Delete/Reorder undo is implemented, verify its
-      separate action titles, ordering, restored payload/list position, and that
-      closing the sheet returns unchanged form history.
+- [ ] 10.4 In Manage Saved Values (per-session undo, a stack separate from the
+      form): delete a preset → `⌘Z` restores it at its original position (the
+      row animates in as rows make room); `⇧⌘Z` deletes again. Reorder — drag
+      and Move Up/Down — → `⌘Z` restores the order; `⇧⌘Z` re-applies. The Edit
+      menu shows **Undo Delete “Name”** / **Undo Move “Name”** (symmetric Redo),
+      disabled when the stack is empty. While a name field is focused and edited,
+      `⌘Z` undoes the text (native), not the list; a merely-focused field does
+      not shadow the list undo. Closing and reopening the panel starts empty.
+      With Reduce Motion on, restores are instant. The panel is a fixed height
+      (~3.5 rows) and scrolls; it does not resize as items are added/removed.
 - [ ] 10.5 Focus the Settings fallback-message field and edit it. `⌘Z` targets
       that field. With focus elsewhere in Settings, Undo is disabled.
 - [ ] 10.6 With a Help window key, Undo and Redo are disabled.

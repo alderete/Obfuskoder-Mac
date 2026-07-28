@@ -10,6 +10,7 @@ import ObfuskoderKit
 struct ManagePresetsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(UndoRouter.self) private var router
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var store: PresetStore
     /// Per-session undo stack for delete/reorder, registered with the router
     /// while this panel is open. Rename stays on native field undo.
@@ -21,6 +22,9 @@ struct ManagePresetsSheet: View {
     }
 
     private static let rowHeight: CGFloat = 44
+    /// Fixed list viewport = 3.5 rows, so the panel never resizes as items are
+    /// added/removed (the list scrolls inside); the half row hints at more.
+    private static let listHeight: CGFloat = rowHeight * 3.5
 
     @State private var draggedID: UUID?
     @State private var dragTranslation: CGFloat = 0
@@ -34,7 +38,7 @@ struct ManagePresetsSheet: View {
                 if store.presets.isEmpty {
                     Text(UIStrings.manageEmptyMessage)
                         .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, minHeight: 160)
+                        .frame(maxWidth: .infinity, minHeight: Self.listHeight)
                 } else {
                     ScrollView {
                         VStack(spacing: 0) {
@@ -42,8 +46,13 @@ struct ManagePresetsSheet: View {
                                 row(preset, at: index)
                             }
                         }
+                        // Animate add/remove (delete + undo-restore) so a
+                        // restored row squeezes into its space and the rows below
+                        // make room. Keyed to `count`, not the id-list, so reorder
+                        // (count unchanged) keeps using the row drag animations.
+                        .animation(reduceMotion ? nil : .default, value: store.presets.count)
                     }
-                    .frame(height: Self.rowHeight * CGFloat(min(max(store.presets.count, 3), 6)))
+                    .frame(height: Self.listHeight)
                 }
             }
             .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
