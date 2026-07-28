@@ -3,6 +3,8 @@
 Thanks for your interest in Obfuskoder! Contributions are welcome, in the form
 of both **issues** and **pull requests**.
 
+This is a hobby and passion project. I'm focused on my own scope and needs, as well as trying to make a Mac-assed Mac app. I don't expect Obfuskoder is useful to many other people, but if that's you, welcome!
+
 A note on expectations: Obfuskoder is maintained in spare time, so please don't
 expect immediate responses. Issues and pull requests are reviewed as time
 allows — your patience is appreciated.
