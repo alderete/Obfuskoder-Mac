@@ -7,6 +7,26 @@
 		<language>en</language>
 		<!-- ITEMS: newest first; entries below are appended by scripts/release.sh -->
 		<item>
+			<title>Obfuskoder 1.0</title>
+			<pubDate>Wed, 29 Jul 2026 20:24:40 -0700</pubDate>
+			<sparkle:version>155</sparkle:version>
+			<sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+			<sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+			<description sparkle:format="markdown"><![CDATA[## Obfuskoder 1.0
+
+**The 1.0 release — #finally!**
+
+Obfuskoder is a small, focused Mac app for obfuscating email addresses so they
+can be published on the web without inviting spam. This is its first stable
+release.
+
+- **New home on the web.** The About box now links to the Obfuskoder project
+  page at [aldosoft.com/obfuskoder](https://aldosoft.com/obfuskoder/).
+
+Thanks for using Obfuskoder!]]></description>
+			<enclosure url="https://github.com/alderete/Obfuskoder-Mac/releases/download/1.0/Obfuskoder-1.0.zip" sparkle:edSignature="M6kd7UJnRHyEiHBs+tAVypvDFsaeHKlkGeFZluKYdl79UpGJZct2RXyf7hnLDjdxr28klbFiOHPt/P63fu5PDA==" length="5349319" type="application/octet-stream"/>
+		</item>
+		<item>
 			<title>Obfuskoder 1.0rc1</title>
 			<pubDate>Mon, 27 Jul 2026 18:56:56 -0700</pubDate>
 			<sparkle:version>147</sparkle:version>
