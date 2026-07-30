@@ -10,7 +10,9 @@ This protection is imperfect. All that's required is for the obfuskoded text to 
 
 Normal use is straightforward. Fill in a form with the content you want protected, and then copy out the obfuskoded snippet. Paste that snippet into an HTML page, or a context where raw HTML is supported.
 
-[screenshots]
+| Basic | Advanced |
+|--|--|
+| ![Basic Mode](docs/ui/obfuskoder-mode-basic.png) | ![Advanced Mode](docs/ui/obfuskoder-mode-advanced.png) |
 
 Basic mode is optimized for email addresses. Advanced mode lets you obfuskode anything. There's help in the app with more details.
 
